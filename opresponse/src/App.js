@@ -10,6 +10,7 @@ import ReportModal from './components/ReportModal';
 import { DISASTERS } from './utils/constants';
 import { generateAgents, moveTowardsCenter } from './utils/helpers';
 import { DISASTER_ZONES } from './data/districtData';
+import { WEATHER_CONDITIONS } from './data/weatherData';
 
 const randInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
 
@@ -20,6 +21,7 @@ function App() {
   const [timeStepIndex, setTimeStepIndex] = useState(0); // 0, 1, 2, 3
   const [agents, setAgents] = useState([]);
   const [showReport, setShowReport] = useState(false);
+  const [weather, setWeather] = useState(null);
 
   const handleLaunch = (disasterId, selectedSeverity) => {
     const selectedDisaster = DISASTERS.find(d => d.id === disasterId);
@@ -30,6 +32,7 @@ function App() {
     const newAgents = generateAgents(selectedDisaster.lat, selectedDisaster.lng);
     setAgents(newAgents);
     
+    setWeather(WEATHER_CONDITIONS[disasterId]);
     setCurrentScreen('simulation');
     setTimeStepIndex(0);
     setShowReport(false);
@@ -38,6 +41,7 @@ function App() {
   const handleReset = () => {
     setCurrentScreen('setup');
     setDisaster(null);
+    setWeather(null);
     setAgents([]);
     setTimeStepIndex(0);
     setShowReport(false);
@@ -123,6 +127,22 @@ function App() {
           }
           default: break;
         }
+
+        // Apply weather penalty
+        if (weather && weather.effects) {
+          const typeMapping = {
+            'Army': 'army',
+            'NDRF': 'ndrf',
+            'Local Police': 'police',
+            'Doctors': 'doctors',
+            'Supply Chain': 'supplyChain',
+            'Civilians': 'civilians'
+          };
+          const tKey = typeMapping[agent.type];
+          if (tKey && weather.effects[tKey]) {
+            newScore = Math.max(20, newScore - weather.effects[tKey].speedPenalty);
+          }
+        }
       }
 
       // Movement logic
@@ -156,6 +176,7 @@ function App() {
             generateReport={() => setShowReport(true)}
             onReset={handleReset}
             disaster={disaster}
+            weather={weather}
           />
           <MapView 
             disaster={disaster} 
@@ -166,7 +187,7 @@ function App() {
       )}
 
       {showReport && (
-        <ReportModal agents={agents} disaster={disaster} onClose={() => setShowReport(false)} />
+        <ReportModal agents={agents} disaster={disaster} weather={weather} onClose={() => setShowReport(false)} />
       )}
     </div>
   );

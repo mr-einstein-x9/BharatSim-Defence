@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { DISASTERS } from '../utils/constants';
+import { WEATHER_CONDITIONS } from '../data/weatherData';
 
 const SetupScreen = ({ onLaunch }) => {
   const [disasterId, setDisasterId] = useState(DISASTERS[0].id);
   const [severity, setSeverity] = useState('Medium');
+  const weather = WEATHER_CONDITIONS[disasterId];
 
   const handleLaunch = () => {
     onLaunch(disasterId, severity);
@@ -39,6 +41,16 @@ const SetupScreen = ({ onLaunch }) => {
               ))}
             </select>
           </div>
+
+          {/* Weather Preview */}
+          {weather && (
+            <div className="mt-4 p-4 bg-[#121a2f] border border-gray-700/80 rounded-lg text-sm text-gray-300 flex items-center gap-3 shadow-inner">
+              <span className="text-2xl">{weather.icon}</span>
+              <div className="font-mono text-[13px]">
+                <span className="font-bold text-gray-200">Expected Conditions:</span> {weather.type} <span className="text-gray-600 mx-1">|</span> Wind: {weather.windSpeed} <span className="text-gray-600 mx-1">|</span> Visibility: {weather.visibility}
+              </div>
+            </div>
+          )}
 
           {/* Severity Selection */}
           <div>

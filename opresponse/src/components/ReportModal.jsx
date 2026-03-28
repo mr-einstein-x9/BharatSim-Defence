@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { DISASTER_ZONES } from '../data/districtData';
 
-const ReportModal = ({ agents, disaster, onClose }) => {
+const ReportModal = ({ agents, disaster, weather, onClose }) => {
   const {
     overall,
     speed,
@@ -55,6 +55,10 @@ const ReportModal = ({ agents, disaster, onClose }) => {
       } else if (totalPop > 0 && totalPop < 2000000) {
         obs.push('✅ Relatively low population density aided civilian evacuation efforts.');
       }
+
+      if (disaster.id === 'cyclone') obs.push('⚠️ Cyclonic winds critically hampered aerial operations and coastal access.');
+      if (disaster.id === 'flood') obs.push('⚠️ Heavy rainfall severely impacted ground transport and supply chains.');
+      if (disaster.id === 'earthquake') obs.push('⚠️ Road collapses due to seismic activity created major logistical challenges.');
     }
 
     if (overallScore >= 75) {
@@ -160,7 +164,37 @@ const ReportModal = ({ agents, disaster, onClose }) => {
             </div>
           )}
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Weather Impact Section */}
+          {weather && (
+            <div className="border-b border-gray-800/60 pb-8 relative">
+              <h2 className="text-xl font-bold text-gray-300 uppercase tracking-widest mb-6">⛈️ Weather Impact on Operation</h2>
+              <div className="overflow-x-auto rounded-xl border border-gray-800">
+                <table className="w-full text-left text-sm text-gray-400">
+                  <thead className="bg-[#121a2f] text-gray-300 uppercase font-mono text-xs border-b border-gray-800">
+                    <tr>
+                      <th className="px-6 py-4">Unit</th>
+                      <th className="px-6 py-4">Effect</th>
+                      <th className="px-6 py-4 text-right">Penalty Applied</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-[#0a0f1e] divide-y divide-gray-800/50">
+                    {Object.entries(weather.effects).map(([key, effect]) => {
+                      const agentNames = { army: '🪖 Army', ndrf: '🟠 NDRF', doctors: '👨⚕️ Doctors', police: '👮 Police', supplyChain: '🚚 Supply Chain', civilians: '👥 Civilians' };
+                      return (
+                        <tr key={key} className="hover:bg-[#121a2f]">
+                          <td className="px-6 py-3 font-semibold text-gray-200">{agentNames[key]}</td>
+                          <td className="px-6 py-3">{effect.label}</td>
+                          <td className="px-6 py-3 text-right font-mono text-red-400">{effect.speedPenalty > 0 ? `-${effect.speedPenalty}` : '0'}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
             {/* Left Column - Breakdown */}
             <div className="lg:col-span-1 space-y-4">
               <h2 className="text-lg font-bold text-gray-300 uppercase tracking-widest mb-4">Metric Breakdown</h2>
