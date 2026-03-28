@@ -1,12 +1,29 @@
 import React from 'react';
 import { TIME_STEPS } from '../utils/constants';
+import { DISASTER_ZONES } from '../data/districtData';
 
-const Sidebar = ({ timeStepIndex, agents, nextStep, generateReport, onReset }) => {
+const Sidebar = ({ timeStepIndex, agents, nextStep, generateReport, onReset, disaster }) => {
   const currentStepLabel = TIME_STEPS[timeStepIndex];
   const isFinished = timeStepIndex === TIME_STEPS.length - 1;
 
-  // Sorting agents by type so they appear grouped
   const sortedAgents = [...agents].sort((a, b) => a.type.localeCompare(b.type));
+
+  let popRiskText = '';
+  let popColorClass = '';
+
+  if (disaster && disaster.id && DISASTER_ZONES[disaster.id]) {
+    const totalPop = DISASTER_ZONES[disaster.id].affectedDistricts.reduce((sum, d) => sum + d.population, 0);
+    const popInLakhs = (totalPop / 100000).toFixed(2);
+    popRiskText = `⚠️ Population at Risk: ${popInLakhs} Lakh`;
+    
+    if (totalPop > 2000000) {
+      popColorClass = 'text-red-400 bg-red-900/20 border-red-500/30';
+    } else if (totalPop >= 1000000) {
+      popColorClass = 'text-orange-400 bg-orange-900/20 border-orange-500/30';
+    } else {
+      popColorClass = 'text-yellow-400 bg-yellow-900/20 border-yellow-500/30';
+    }
+  }
 
   return (
     <div className="w-80 h-full bg-[#0f1627] border-r border-gray-800 flex flex-col text-white shadow-2xl relative z-20">
@@ -32,6 +49,12 @@ const Sidebar = ({ timeStepIndex, agents, nextStep, generateReport, onReset }) =
           </span>
         </div>
       </div>
+
+      {disaster && (
+        <div className={`mx-4 mt-4 p-3 rounded border text-sm font-semibold flex items-center justify-center ${popColorClass}`}>
+          {popRiskText}
+        </div>
+      )}
 
       {/* Agent List */}
       <div className="flex-1 overflow-y-auto p-4 space-y-3">

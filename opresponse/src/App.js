@@ -9,6 +9,7 @@ import ReportModal from './components/ReportModal';
 
 import { DISASTERS } from './utils/constants';
 import { generateAgents, moveTowardsCenter } from './utils/helpers';
+import { DISASTER_ZONES } from './data/districtData';
 
 const randInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
 
@@ -109,10 +110,17 @@ function App() {
             newScore = newStatus === 'Blocked' ? randInt(40, 60) : randInt(70, 85);
             newStatus = 'Completed';
             break;
-          case 'Civilians':
-            newScore = newStatus === 'Blocked' ? randInt(30, 55) : randInt(60, 80);
+          case 'Civilians': {
+            let baseScore = newStatus === 'Blocked' ? randInt(30, 55) : randInt(60, 80);
+            if (disaster && disaster.id) {
+              const totalPop = DISASTER_ZONES[disaster.id]?.affectedDistricts.reduce((sum, d) => sum + d.population, 0) || 0;
+              if (totalPop > 5000000) baseScore -= 15;
+              else if (totalPop >= 2000000) baseScore -= 8;
+            }
+            newScore = Math.max(0, baseScore);
             newStatus = 'Completed';
             break;
+          }
           default: break;
         }
       }
@@ -147,6 +155,7 @@ function App() {
             nextStep={nextTimeStep} 
             generateReport={() => setShowReport(true)}
             onReset={handleReset}
+            disaster={disaster}
           />
           <MapView 
             disaster={disaster} 
@@ -157,7 +166,7 @@ function App() {
       )}
 
       {showReport && (
-        <ReportModal agents={agents} onClose={() => setShowReport(false)} />
+        <ReportModal agents={agents} disaster={disaster} onClose={() => setShowReport(false)} />
       )}
     </div>
   );

@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
+import { DISASTER_ZONES } from '../data/districtData';
 
-const ReportModal = ({ agents, onClose }) => {
+const ReportModal = ({ agents, disaster, onClose }) => {
   const {
     overall,
     speed,
@@ -10,6 +11,8 @@ const ReportModal = ({ agents, onClose }) => {
     civilian,
     observations,
     recommendation,
+    popData,
+    totalPop,
   } = useMemo(() => {
     // Group agents
     const army = agents.filter(a => a.type === 'Army');
@@ -40,6 +43,20 @@ const ReportModal = ({ agents, onClose }) => {
     if (civScore < 50) {
       obs.push('❌ Civilian safety was critically compromised.');
     }
+
+    let popData = null;
+    let totalPop = 0;
+    if (disaster && disaster.id && DISASTER_ZONES[disaster.id]) {
+      popData = DISASTER_ZONES[disaster.id].affectedDistricts;
+      totalPop = popData.reduce((sum, d) => sum + d.population, 0);
+      
+      if (totalPop > 5000000) {
+        obs.push('⚠️ High population density significantly increased civilian protection difficulty.');
+      } else if (totalPop > 0 && totalPop < 2000000) {
+        obs.push('✅ Relatively low population density aided civilian evacuation efforts.');
+      }
+    }
+
     if (overallScore >= 75) {
       obs.push('⭐ Operation was largely successful overall.');
     } else if (overallScore >= 50 && obs.length < 4) {
@@ -72,8 +89,10 @@ const ReportModal = ({ agents, onClose }) => {
       civilian: civScore,
       observations: obs,
       recommendation: rec,
+      popData,
+      totalPop,
     };
-  }, [agents]);
+  }, [agents, disaster]);
 
   const getScoreColor = (sc) => {
     if (sc >= 70) return 'text-green-400';
@@ -108,6 +127,38 @@ const ReportModal = ({ agents, onClose }) => {
               </span>
             </div>
           </div>
+
+          {popData && (
+            <div className="border-t border-b border-gray-800/60 py-8 relative">
+              <h2 className="text-xl font-bold text-gray-300 uppercase tracking-widest mb-6">Affected Population</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                <div className="overflow-x-auto rounded-xl border border-gray-800">
+                  <table className="w-full text-left text-sm text-gray-400">
+                    <thead className="bg-[#121a2f] text-gray-300 uppercase font-mono text-xs border-b border-gray-800">
+                      <tr>
+                        <th className="px-6 py-4">District</th>
+                        <th className="px-6 py-4 text-right">Population</th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-[#0a0f1e] divide-y divide-gray-800/50">
+                      {popData.map((d, i) => (
+                        <tr key={i} className="hover:bg-[#121a2f]">
+                          <td className="px-6 py-3 font-semibold text-gray-200">{d.name}</td>
+                          <td className="px-6 py-3 text-right font-mono">{(d.population / 100000).toFixed(2)} Lakh</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <div className="flex flex-col items-center justify-center space-y-4">
+                  <span className="text-gray-400 font-bold uppercase tracking-widest text-sm">Total At Risk</span>
+                  <span className={`text-6xl font-black font-mono drop-shadow-2xl ${totalPop > 2000000 ? 'text-red-500' : totalPop >= 1000000 ? 'text-orange-400' : 'text-yellow-400'}`}>
+                    {(totalPop / 100000).toFixed(2)} <span className="text-2xl text-gray-500">Lakh</span>
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Left Column - Breakdown */}
