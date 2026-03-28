@@ -1,14 +1,14 @@
 # 🪖 OpResponse — India Disaster Response Simulator
 
-> A multi-theatre disaster response simulation platform built for India. Spawn agencies, model weather, compare strategies, and generate military-grade after-action reports — all in the browser.
+> A probabilistic, multi-theatre disaster response decision-support system built for India. Spawn agencies, model weather, trigger causal chain reactions, compare strategies, and generate military-grade after-action reports — all in the browser.
 
 ![Made with React](https://img.shields.io/badge/React-18-61DAFB?style=flat-square&logo=react)
 ![Leaflet](https://img.shields.io/badge/Leaflet.js-Map-199900?style=flat-square&logo=leaflet)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind-v3-38B2AC?style=flat-square&logo=tailwind-css)
 ![Deployed on Vercel](https://img.shields.io/badge/Deployed-Vercel-black?style=flat-square&logo=vercel)
 ![No API Keys](https://img.shields.io/badge/API%20Keys-None-brightgreen?style=flat-square)
+![Probabilistic](https://img.shields.io/badge/Engine-Probabilistic-orange?style=flat-square)
 
-![OpResponse Screenshot](./screenshot1.png)![OpResponse Screenshot](./screenshot2.png)![OpResponse Screenshot](./screenshot3.png)![OpResponse Screenshot](./screenshot4.png)
 ---
 
 ## 🌐 Live Demo
@@ -23,10 +23,11 @@ India is among the world's most disaster-prone nations — floods in Assam, eart
 
 - Visualize how multiple agencies coordinate in real time
 - Predict bottlenecks before they happen — blocked supply chains, delayed medical deployment
-- Score and evaluate response effectiveness after an operation
+- Model cascading failures where one problem triggers another
+- Score and evaluate response effectiveness dynamically
 - Compare two response strategies before committing real resources
 
-**OpResponse** bridges this gap by simulating disaster response scenarios on a real map of India — before resources are ever deployed.
+**OpResponse** bridges this gap — a probabilistic, agent-based simulation platform that models India's disaster response realistically, where every run tells a different story.
 
 ---
 
@@ -55,7 +56,7 @@ Powered by Leaflet.js and OpenStreetMap — no API key required. Disaster zones 
 T+0hr → T+6hr → T+24hr → T+72hr with realistic movement and status logic per agency type.
 
 ### 📊 After-Action Report
-Military-style debrief with effectiveness scores, coordination breakdown, weather impact analysis, population risk assessment, and strategic recommendations.
+Military-style debrief with emergent effectiveness scores, coordination breakdown, weather impact analysis, cascade analysis, population risk assessment, and strategic recommendations.
 
 ---
 
@@ -94,6 +95,33 @@ Military-style debrief with effectiveness scores, coordination breakdown, weathe
 - Category winners table with color-coded results
 - Export Comparison button — copies full report to clipboard
 
+### Upgrade 5 — Probabilistic Engine + Causal Chain Reactions
+The biggest upgrade — transforms OpResponse from a deterministic simulator into a realistic decision-support system.
+
+**Probabilistic Outcomes:**
+- Every simulation run produces different results
+- Scores calculated with severity-based variance (±8 Low, ±15 Medium, ±22 High)
+- Weather penalties also vary ±5 per run
+- 🎲 Probabilistic Run badge in every report
+- Same scenario run twice = meaningfully different outcomes
+
+**Causal Chain Reactions:**
+Five cascading failure chains that trigger automatically based on conditions:
+
+| Chain | Trigger | Effect |
+|---|---|---|
+| 🌊 Flood Road Blockage | Flood + High severity | Supply Chain -15 at T+6hr |
+| 🚚 Supply → Medical Delay | Supply Chain blocked | Doctors -10 at T+24hr |
+| 🏥 Medical → Casualties | Doctors score < 60 | Civilians -12 at T+72hr |
+| 🏔️ Earthquake Road Collapse | Earthquake type | Army -8 at T+6hr |
+| 📡 Cyclone Comms Blackout | Cyclone + Medium/High | Police -12 at T+6hr |
+
+**Emergent Scoring:**
+- Scores emerge from what actually happened — not hardcoded rules
+- Each agent score built from: Base → Chain penalties → Weather variance → Population modifier
+- Per-agent score breakdown tooltip in report: *"Base: 100 | Chain: -25 | Weather: -20 | Variance: +8 | Final: 63"*
+- ⚡ Cascade Analysis section in report listing all triggered chains
+
 ---
 
 ## 📈 Scoring System
@@ -104,11 +132,11 @@ Military-style debrief with effectiveness scores, coordination breakdown, weathe
 | Coordination Score | Army + NDRF + Police effectiveness |
 | Coverage Score | Doctors + Supply Chain reach |
 | Supply Efficiency | Logistics performance |
-| Civilian Safety Score | Population protection (adjusted for density) |
+| Civilian Safety Score | Population protection (adjusted for density + chains) |
 
 Overall score color-coded: 🟢 >70 Effective | 🟡 40–70 Moderate | 🔴 <40 Critical Failure
 
-Weather penalties and population density both affect final scores.
+Scores are emergent — shaped by weather penalties, population density, causal chain reactions, and probabilistic variance.
 
 ---
 
@@ -121,8 +149,32 @@ Weather penalties and population density both affect final scores.
 | Leaflet.js + react-leaflet | Interactive India map |
 | OpenStreetMap | Free map tiles, no API key |
 | CSS Animations | Bar chart comparisons, marker transitions |
+| Custom Simulation Engine | Probabilistic scoring + causal chains |
 
 **No backend. No API keys. No paid services. Runs entirely in the browser.**
+
+---
+
+## 🏗️ Project Structure
+
+```
+opresponse/
+├── src/
+│   ├── components/
+│   │   ├── SetupScreen.jsx       # Disaster + strategy configuration
+│   │   ├── MapView.jsx           # Leaflet map with agent markers
+│   │   ├── AgentMarker.jsx       # Individual agent on map
+│   │   ├── Sidebar.jsx           # Live status + chain events
+│   │   ├── ReportModal.jsx       # After-action report
+│   │   └── ComparisonReport.jsx  # A vs B comparison with bar charts
+│   ├── simulation/
+│   │   └── causalChains.js       # 5 cascade failure definitions
+│   ├── data/
+│   │   ├── districtData.js       # Real Indian census data
+│   │   └── weatherData.js        # Disaster weather conditions
+│   └── utils/
+│       └── helpers.js            # Probabilistic + emergent scoring
+```
 
 ---
 
@@ -154,6 +206,7 @@ App runs at `http://localhost:3000`
 - PDF export of after-action reports for training use
 - Multi-user mode — different users control different agencies in real time
 - State-level drill mode for SDMA training exercises
+- LLM-based agent decision making for fully autonomous simulation
 
 ---
 
