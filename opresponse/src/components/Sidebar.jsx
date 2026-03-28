@@ -154,6 +154,23 @@ const Sidebar = ({ timeStepIndex, simulationMode, activeZonesA, activeZonesB, ne
           </div>
         )}
 
+        {/* Chain Events */}
+        {activeZone && activeZone.triggeredChains && activeZone.triggeredChains.length > 0 && (
+          <div className="mx-4 mt-4 bg-red-900/10 border border-red-500/30 rounded-lg shadow-lg overflow-hidden shrink-0 p-3">
+             <h3 className="font-bold text-red-400 uppercase tracking-widest text-[10px] m-0 mb-3 flex items-center gap-1.5">
+               <span className="text-lg leading-none mt-0.5">⚡</span> Chain Events
+             </h3>
+             <div className="space-y-2">
+               {activeZone.triggeredChains.map((chain, idx) => (
+                 <div key={`${chain.id}-${idx}`} className="bg-[#121a2f] text-[10px] text-red-200 p-2 rounded border border-red-500/20 shadow-inner flex flex-col font-mono">
+                   <span className="font-bold uppercase tracking-wider text-red-400 mb-0.5 opacity-80 text-[9px]">T+{chain.step === 1 ? '6' : chain.step === 2 ? '24' : '72'}hr Trigger</span>
+                   <span className="font-medium text-[11px] leading-tight text-red-300/90">{chain.event}</span>
+                 </div>
+               ))}
+             </div>
+          </div>
+        )}
+
         {/* Thin Divider Line */}
         <div className="mx-4 my-5 border-b border-gray-800/80 shrink-0"></div>
 

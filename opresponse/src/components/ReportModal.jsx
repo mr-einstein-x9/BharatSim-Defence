@@ -126,7 +126,10 @@ const ReportModal = ({ activeZones, onClose }) => {
         <div className="p-10 relative z-10 flex flex-col gap-10">
           
           {/* Header Section */}
-          <div className="text-center border-b border-gray-800/60 pb-8">
+          <div className="text-center border-b border-gray-800/60 pb-8 relative">
+            <div className="absolute top-0 right-0 bg-purple-900/20 border border-purple-500/40 text-purple-400 px-3 py-1 rounded text-[10px] uppercase tracking-widest font-bold flex items-center gap-1 shadow-[0_0_10px_rgba(168,85,247,0.2)]">
+              <span className="text-sm">🎲</span> Probabilistic Run
+            </div>
             <h1 className="text-5xl font-black text-white tracking-widest uppercase m-0 flex items-center justify-center gap-4">
               <span className="text-blue-500">🛡️</span> OPERATION REPORT <span className="text-blue-500">🛡️</span>
             </h1>
@@ -168,7 +171,35 @@ const ReportModal = ({ activeZones, onClose }) => {
              </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-4">
+          {/* Cascade Analysis */}
+          <div className="border-b border-gray-800/60 pb-8 mt-6">
+             <h2 className="text-xl font-bold text-gray-300 uppercase tracking-widest mb-6 flex items-center gap-2">
+               <span className="text-xl leading-none">⚡</span> Cascade Analysis
+             </h2>
+             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+               {zonesData.map((z, i) => (
+                 <div key={z.id} className="bg-[#121a2f] border border-red-500/20 rounded-xl p-4 shadow-lg shrink-0">
+                   <h3 className="text-xs font-bold text-red-400 uppercase tracking-widest mb-3 border-b border-red-500/20 pb-2">Zone {i + 1} Chains</h3>
+                   {z.triggeredChains && z.triggeredChains.length > 0 ? (
+                     <div className="space-y-3">
+                       {z.triggeredChains.map((c, j) => (
+                         <div key={j} className="bg-[#0a0f1e] text-[10px] text-red-200 p-2 rounded border border-red-500/10 flex flex-col font-mono leading-tight">
+                           <span className="font-bold uppercase tracking-wider text-red-400 mb-0.5 opacity-80 text-[9px]">T+{c.step === 1 ? '6' : c.step === 2 ? '24' : '72'}hr Trigger</span>
+                           <span className="mb-1 leading-snug break-words">{c.event}</span>
+                           <span className="text-red-400/80 font-bold">Impact: {c.impacts.map(imp => `${imp.type} -${imp.penalty}`).join(' | ')}</span>
+                         </div>
+                       ))}
+                     </div>
+                   ) : (
+                     <span className="text-[10px] text-gray-500 font-mono italic">No cascade events triggered.</span>
+                   )}
+                 </div>
+               ))}
+             </div>
+          </div>
+
+          {/* Observations & Feedback block */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-4">
             {/* Left Column - Breakdown */}
             <div className="lg:col-span-1 space-y-4">
               <h2 className="text-lg font-bold text-gray-300 uppercase tracking-widest mb-4">Total Metric Breakdown</h2>
@@ -260,8 +291,19 @@ const ReportModal = ({ activeZones, onClose }) => {
                               {agent.status}
                             </span>
                           </td>
-                          <td className={`px-6 py-3 text-right font-mono font-bold text-sm ${getScoreColor(agent.score)}`}>
-                            {agent.score}
+                          <td className="px-6 py-3 font-bold font-mono text-sm text-right align-middle text-emerald-400 group relative">
+                            <span className="cursor-help border-b border-dashed border-emerald-400/50 pb-0.5">{agent.score}</span>
+                            {agent.breakDown && (
+                              <div className="absolute bottom-full right-4 mb-2 hidden group-hover:block w-40 bg-[#162032] border border-emerald-500/30 text-emerald-100 text-[10px] rounded p-3 shadow-2xl z-50 pointer-events-none text-left leading-relaxed">
+                                <div className="text-[9px] uppercase tracking-widest opacity-60 font-sans mb-1 border-b border-emerald-500/20 pb-1">Score Breakdown</div>
+                                Base: 100<br/>
+                                Weather: {agent.breakDown.weatherPenalty}<br/>
+                                Chain: {agent.breakDown.chainPenalty}<br/>
+                                Pop Base: {agent.breakDown.popPenalty}<br/>
+                                Variance: {agent.breakDown.variance > 0 ? '+'+agent.breakDown.variance : agent.breakDown.variance}<br/>
+                                <div className="border-t border-emerald-500/20 mt-1 pt-1 font-bold text-emerald-400">Final: {agent.score}</div>
+                              </div>
+                            )}
                           </td>
                         </tr>
                       ))}

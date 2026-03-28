@@ -9,18 +9,19 @@ import ReportModal from './components/ReportModal';
 import ComparisonReport from './components/ComparisonReport';
 
 import { DISASTERS } from './utils/constants';
-import { generateAgents, moveTowardsCenter } from './utils/helpers';
+import { generateAgents, moveTowardsCenter, calculateEmergentScore } from './utils/helpers';
 import { DISASTER_ZONES } from './data/districtData';
 import { WEATHER_CONDITIONS } from './data/weatherData';
+import { evaluateChainsForStep } from './simulation/causalChains';
 
-const randInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+
 
 function App() {
   const [currentScreen, setCurrentScreen] = useState('setup'); // 'setup' | 'simulation'
   const [simulationMode, setSimulationMode] = useState('single'); // 'single' | 'comparison'
   const [activeZonesA, setActiveZonesA] = useState([]);
   const [activeZonesB, setActiveZonesB] = useState([]);
-  const [timeStepIndex, setTimeStepIndex] = useState(0); 
+  const [timeStepIndex, setTimeStepIndex] = useState(0);
   const [showReport, setShowReport] = useState(false);
 
   const handleLaunch = (payload) => {
@@ -33,7 +34,7 @@ function App() {
           weather: WEATHER_CONDITIONS[slot.disasterId]
         };
       });
-      return generateAgents(configured);
+      return generateAgents(configured).map(z => ({ ...z, triggeredChains: [] }));
     };
 
     if (payload.mode === 'comparison') {
@@ -62,113 +63,77 @@ function App() {
   const nextTimeStep = () => {
     if (timeStepIndex >= 3) return;
     const nextStepIdx = timeStepIndex + 1;
-    
+
     const processZones = (prevZones) => prevZones.map(zone => {
-      const updatedAgents = zone.agents.map(agent => {
+      let updatedAgents = zone.agents.map(agent => {
         let newStatus = agent.status;
-        let newScore = agent.score;
         let newLat = agent.lat;
         let newLng = agent.lng;
 
-        // Update statuses based on Time Step Logic
         if (nextStepIdx === 1) { // T+6hr
-          switch(agent.type) {
-            case 'Army':
-            case 'NDRF':
-            case 'Local Police':
-              newStatus = 'Moving';
-              break;
-            case 'Doctors':
-            case 'Supply Chain':
-              newStatus = 'Standby';
-              break;
-            case 'Civilians':
-              newStatus = Math.random() < 0.5 ? 'Blocked' : 'Standby';
-              break;
+          switch (agent.type) {
+            case 'Army': case 'NDRF': case 'Local Police': newStatus = 'Moving'; break;
+            case 'Doctors': case 'Supply Chain': newStatus = 'Standby'; break;
+            case 'Civilians': newStatus = Math.random() < 0.5 ? 'Blocked' : 'Standby'; break;
             default: break;
           }
         } else if (nextStepIdx === 2) { // T+24hr
-          switch(agent.type) {
-            case 'Army':
-            case 'NDRF':
-            case 'Local Police':
-              newStatus = 'On Ground';
-              break;
-            case 'Doctors':
-              newStatus = 'Moving';
-              break;
-            case 'Supply Chain':
-              newStatus = zone.severity === 'High' ? 'Blocked' : 'Moving';
-              break;
-            case 'Civilians':
-              if (newStatus !== 'Blocked') newStatus = 'Moving';
-              break;
+          switch (agent.type) {
+            case 'Army': case 'NDRF': case 'Local Police': newStatus = 'On Ground'; break;
+            case 'Doctors': newStatus = 'Moving'; break;
+            case 'Supply Chain': newStatus = zone.severity === 'High' ? 'Blocked' : 'Moving'; break;
+            case 'Civilians': if (newStatus !== 'Blocked') newStatus = 'Moving'; break;
             default: break;
           }
         } else if (nextStepIdx === 3) { // T+72hr
-          switch(agent.type) {
-            case 'Army':
-              newStatus = 'Completed';
-              newScore = randInt(80, 95);
-              break;
-            case 'NDRF':
-              newStatus = 'Completed';
-              newScore = randInt(75, 90);
-              break;
-            case 'Local Police':
-              newStatus = 'Completed';
-              newScore = randInt(70, 88);
-              break;
-            case 'Doctors':
-              newStatus = 'On Ground';
-              newScore = randInt(65, 85);
-              break;
-            case 'Supply Chain':
-              newScore = newStatus === 'Blocked' ? randInt(40, 60) : randInt(70, 85);
-              newStatus = 'Completed';
-              break;
-            case 'Civilians': {
-              let baseScore = newStatus === 'Blocked' ? randInt(30, 55) : randInt(60, 80);
-              const totalPop = DISASTER_ZONES[zone.disasterId]?.affectedDistricts.reduce((sum, d) => sum + d.population, 0) || 0;
-              if (totalPop > 5000000) baseScore -= 15;
-              else if (totalPop >= 2000000) baseScore -= 8;
-              newScore = Math.max(0, baseScore);
-              newStatus = 'Completed';
-              break;
-            }
+          switch (agent.type) {
+            case 'Army': case 'NDRF': case 'Local Police': case 'Supply Chain': case 'Civilians': newStatus = 'Completed'; break;
+            case 'Doctors': newStatus = 'On Ground'; break;
             default: break;
-          }
-
-          // Apply weather penalty
-          if (zone.weather && zone.weather.effects) {
-            const typeMapping = {
-              'Army': 'army',
-              'NDRF': 'ndrf',
-              'Local Police': 'police',
-              'Doctors': 'doctors',
-              'Supply Chain': 'supplyChain',
-              'Civilians': 'civilians'
-            };
-            const tKey = typeMapping[agent.type];
-            if (tKey && zone.weather.effects[tKey]) {
-              newScore = Math.max(20, newScore - zone.weather.effects[tKey].speedPenalty);
-            }
           }
         }
 
-        // Movement logic
-        // If they are not blocked or standby, they move closer to the center
         const isMoving = newStatus === 'Moving' || newStatus === 'On Ground' || newStatus === 'Completed';
-        
         if (isMoving) {
           const { lat, lng } = moveTowardsCenter(newLat, newLng, zone.lat, zone.lng);
           newLat = lat;
           newLng = lng;
         }
 
-        return { ...agent, status: newStatus, score: newScore, lat: newLat, lng: newLng };
+        return { ...agent, status: newStatus, lat: newLat, lng: newLng };
       });
-      return { ...zone, agents: updatedAgents };
+
+      const interZone = { ...zone, agents: updatedAgents };
+      let pushedChains = [];
+      let docsFailed = false;
+
+      if (nextStepIdx === 1 || nextStepIdx === 2) {
+        pushedChains = evaluateChainsForStep(interZone, nextStepIdx);
+      }
+
+      if (nextStepIdx === 3) {
+        const totalPop = DISASTER_ZONES[zone.disasterId]?.affectedDistricts.reduce((sum, d) => sum + d.population, 0) || 0;
+
+        updatedAgents = updatedAgents.map(ag => {
+          if (ag.type === 'Civilians') return ag;
+          const res = calculateEmergentScore(ag, zone.triggeredChains, zone.weather?.effects, zone.severity, totalPop);
+          return { ...ag, score: res.finalScore, breakDown: res };
+        });
+
+        docsFailed = updatedAgents.some(a => a.type === 'Doctors' && a.score < 60);
+        pushedChains = evaluateChainsForStep(interZone, 3, { doctorsFailed: docsFailed });
+
+        const tempChainsPop = [...zone.triggeredChains, ...pushedChains];
+        updatedAgents = updatedAgents.map(ag => {
+          if (ag.type === 'Civilians') {
+            const res = calculateEmergentScore(ag, tempChainsPop, zone.weather?.effects, zone.severity, totalPop);
+            return { ...ag, score: res.finalScore, breakDown: res };
+          }
+          return ag;
+        });
+      }
+
+      return { ...zone, agents: updatedAgents, triggeredChains: [...(zone.triggeredChains || []), ...pushedChains] };
     });
 
     setActiveZonesA(prev => processZones(prev));
@@ -194,16 +159,16 @@ function App() {
 
       {currentScreen === 'simulation' && (
         <div className="flex-1 flex flex-row h-full w-full">
-          <Sidebar 
-            timeStepIndex={timeStepIndex} 
+          <Sidebar
+            timeStepIndex={timeStepIndex}
             simulationMode={simulationMode}
-            activeZonesA={activeZonesA} 
+            activeZonesA={activeZonesA}
             activeZonesB={activeZonesB}
-            nextStep={nextTimeStep} 
+            nextStep={nextTimeStep}
             generateReport={() => setShowReport(true)}
             onReset={handleReset}
           />
-          <MapView 
+          <MapView
             simulationMode={simulationMode}
             activeZonesA={activeZonesA}
             activeZonesB={activeZonesB}

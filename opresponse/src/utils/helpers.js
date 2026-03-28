@@ -86,3 +86,62 @@ export const moveTowardsCenter = (agentLat, agentLng, centerLat, centerLng) => {
 
   return { lat: newLat, lng: newLng };
 };
+
+export const getProbabilisticScore = (base, variance) => {
+  const diff = Math.floor(Math.random() * (variance * 2 + 1)) - variance;
+  return base + diff;
+};
+
+export const calculateEmergentScore = (agent, chains, weatherEffects, severity, totalPop) => {
+  const varianceLimit = severity === 'High' ? 22 : severity === 'Medium' ? 15 : 8;
+
+  let base = 100;
+  
+  // 1. Chain Penalties
+  let chainPenalty = 0;
+  chains.forEach(ch => {
+     const impact = ch.impacts.find(i => i.type === agent.type);
+     if (impact) chainPenalty += impact.penalty;
+  });
+
+  // 2. Weather Penalty (with variance)
+  let weatherPenalty = 0;
+  if (weatherEffects) {
+     const typeMapping = {
+        'Army': 'army', 'NDRF': 'ndrf', 'Local Police': 'police',
+        'Doctors': 'doctors', 'Supply Chain': 'supplyChain', 'Civilians': 'civilians'
+     };
+     const tKey = typeMapping[agent.type];
+     if (tKey && weatherEffects[tKey]) {
+        const baseWP = weatherEffects[tKey].speedPenalty || 0;
+        if (baseWP > 0) {
+           weatherPenalty = getProbabilisticScore(baseWP, 5); // Weather variance ±5
+           if (weatherPenalty < 0) weatherPenalty = 0;
+        }
+     }
+  }
+
+  // 3. Population Penalty (only applies to Civilians)
+  let popPenalty = 0;
+  if (agent.type === 'Civilians') {
+     if (totalPop > 5000000) popPenalty = 15;
+     else if (totalPop >= 2000000) popPenalty = 8;
+  }
+
+  // 4. Random Variance
+  const varianceApplied = getProbabilisticScore(0, varianceLimit);
+
+  // Compute
+  let finalScore = base - chainPenalty - weatherPenalty - popPenalty + varianceApplied;
+  if (finalScore < 15) finalScore = 15;
+  if (finalScore > 98) finalScore = 98;
+
+  return {
+    base: base,
+    chainPenalty: -chainPenalty,
+    weatherPenalty: -weatherPenalty,
+    popPenalty: -popPenalty,
+    variance: varianceApplied,
+    finalScore
+  };
+};

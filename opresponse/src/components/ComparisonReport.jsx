@@ -151,7 +151,10 @@ const ComparisonReport = ({ activeZonesA, activeZonesB, onClose }) => {
         <div className="p-10 relative z-10 flex flex-col gap-10">
           
           {/* Header */}
-          <div className="text-center border-b border-gray-800/60 pb-8">
+          <div className="text-center border-b border-gray-800/60 pb-8 relative">
+            <div className="absolute top-0 right-0 bg-purple-900/20 border border-purple-500/40 text-purple-400 px-3 py-1 rounded text-[10px] uppercase tracking-widest font-bold flex items-center gap-1 shadow-[0_0_10px_rgba(168,85,247,0.2)]">
+              <span className="text-sm">🎲</span> Probabilistic Run
+            </div>
             <h1 className="text-4xl font-black text-white tracking-widest uppercase m-0 flex items-center justify-center gap-4">
               <span className="text-gray-500">⚔️</span> STRATEGY COMPARISON REPORT <span className="text-gray-500">⚔️</span>
             </h1>
@@ -229,6 +232,66 @@ const ComparisonReport = ({ activeZonesA, activeZonesB, onClose }) => {
                 </div>
               </div>
             </div>
+          </div>
+
+          {/* Section 5 - Cascade Analysis */}
+          <div className="border-t border-gray-800/60 pt-8 mt-4">
+             <h2 className="text-xl font-bold text-gray-300 uppercase tracking-widest mb-6 flex items-center gap-2">
+               <span className="text-xl leading-none">⚡</span> Cascade Analysis
+             </h2>
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+               
+               {/* Strategy A Cascades */}
+               <div className="bg-[#121a2f] border border-blue-500/20 rounded-xl p-5 shadow-lg">
+                 <h3 className="text-sm font-bold text-blue-400 uppercase tracking-widest mb-4 border-b border-blue-500/20 pb-2">Strategy A Triggers</h3>
+                 <div className="space-y-4">
+                   {activeZonesA.some(z => z.triggeredChains && z.triggeredChains.length > 0) ? (
+                     activeZonesA.map((z, i) => z.triggeredChains?.length > 0 && (
+                       <div key={`a-zone-${i}`}>
+                         <span className="text-[10px] font-bold text-blue-300/60 uppercase mb-2 block">{z.name}</span>
+                         <div className="space-y-2">
+                           {z.triggeredChains.map((c, j) => (
+                             <div key={j} className="bg-[#0a0f1e] text-[10px] text-blue-200 p-2 rounded border border-blue-500/10 flex flex-col font-mono">
+                               <span className="font-bold text-blue-400 mb-0.5 opacity-80 text-[9px]">T+{c.step === 1 ? '6' : c.step === 2 ? '24' : '72'}hr</span>
+                               <span className="mb-1 leading-snug">{c.event}</span>
+                               <span className="text-blue-400/80 font-bold">Impact: {c.impacts.map(imp => `${imp.type} -${imp.penalty}`).join(' | ')}</span>
+                             </div>
+                           ))}
+                         </div>
+                       </div>
+                     ))
+                   ) : (
+                     <span className="text-[10px] text-gray-500 font-mono italic">No cascades triggered in Strategy A.</span>
+                   )}
+                 </div>
+               </div>
+
+               {/* Strategy B Cascades */}
+               <div className="bg-[#121a2f] border border-red-500/20 rounded-xl p-5 shadow-lg">
+                 <h3 className="text-sm font-bold text-red-400 uppercase tracking-widest mb-4 border-b border-red-500/20 pb-2">Strategy B Triggers</h3>
+                 <div className="space-y-4">
+                   {activeZonesB.some(z => z.triggeredChains && z.triggeredChains.length > 0) ? (
+                     activeZonesB.map((z, i) => z.triggeredChains?.length > 0 && (
+                       <div key={`b-zone-${i}`}>
+                         <span className="text-[10px] font-bold text-red-300/60 uppercase mb-2 block">{z.name}</span>
+                         <div className="space-y-2">
+                           {z.triggeredChains.map((c, j) => (
+                             <div key={j} className="bg-[#0a0f1e] text-[10px] text-red-200 p-2 rounded border border-red-500/10 flex flex-col font-mono">
+                               <span className="font-bold text-red-400 mb-0.5 opacity-80 text-[9px]">T+{c.step === 1 ? '6' : c.step === 2 ? '24' : '72'}hr</span>
+                               <span className="mb-1 leading-snug">{c.event}</span>
+                               <span className="text-red-400/80 font-bold">Impact: {c.impacts.map(imp => `${imp.type} -${imp.penalty}`).join(' | ')}</span>
+                             </div>
+                           ))}
+                         </div>
+                       </div>
+                     ))
+                   ) : (
+                     <span className="text-[10px] text-gray-500 font-mono italic">No cascades triggered in Strategy B.</span>
+                   )}
+                 </div>
+               </div>
+
+             </div>
           </div>
 
           <div className="flex justify-center items-center gap-4 mt-6 border-t border-gray-800/60 pt-8">
