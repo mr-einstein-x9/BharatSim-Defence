@@ -1,22 +1,31 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { TIME_STEPS } from '../utils/constants';
 import { DISASTER_ZONES } from '../data/districtData';
 
-const Sidebar = ({ timeStepIndex, activeZones, nextStep, generateReport, onReset }) => {
-  const [activeTabId, setActiveTabId] = useState(activeZones[0]?.id || null);
+const Sidebar = ({ timeStepIndex, simulationMode, activeZonesA, activeZonesB, nextStep, generateReport, onReset, activeZones }) => {
+  const [activeStrategy, setActiveStrategy] = useState('A');
+  
+  // Backwards compatibility or single mode
+  const currentZonesList = useMemo(() => 
+    simulationMode === 'comparison' 
+      ? (activeStrategy === 'A' ? activeZonesA : activeZonesB) 
+      : (activeZonesA || activeZones || []), 
+    [simulationMode, activeStrategy, activeZonesA, activeZonesB, activeZones]
+  );
+
+  const [activeTabId, setActiveTabId] = useState(currentZonesList[0]?.id || null);
   const [isWeatherExpanded, setIsWeatherExpanded] = useState(false);
 
   const currentStepLabel = TIME_STEPS[timeStepIndex] || '';
   const isFinished = timeStepIndex >= TIME_STEPS.length - 1;
 
-  // Auto-select first tab on load or reset
   useEffect(() => {
-    if (activeZones.length > 0 && !activeZones.find(z => z.id === activeTabId)) {
-      setActiveTabId(activeZones[0].id);
+    if (currentZonesList.length > 0 && !currentZonesList.find(z => z.id === activeTabId)) {
+      setActiveTabId(currentZonesList[0].id);
     }
-  }, [activeZones, activeTabId]);
+  }, [currentZonesList, activeTabId]);
 
-  const activeZone = activeZones.find(z => z.id === activeTabId) || activeZones[0];
+  const activeZone = currentZonesList.find(z => z.id === activeTabId) || currentZonesList[0];
   const sortedAgents = activeZone ? [...activeZone.agents].sort((a, b) => a.type.localeCompare(b.type)) : [];
 
   let popRiskText = '';
@@ -52,10 +61,35 @@ const Sidebar = ({ timeStepIndex, activeZones, nextStep, generateReport, onReset
         </button>
       </div>
 
+      {simulationMode === 'comparison' && (
+        <div className="flex shrink-0 border-b border-gray-800 bg-[#0f1627]">
+          <button
+            onClick={() => setActiveStrategy('A')}
+            className={`flex-1 py-3 text-xs font-bold uppercase tracking-wider transition-colors border-b-2 ${
+              activeStrategy === 'A' 
+                ? 'text-blue-400 border-blue-500 bg-blue-900/10' 
+                : 'text-gray-500 border-transparent hover:text-gray-300 hover:bg-[#1a263c]'
+            }`}
+          >
+            🔵 Strategy A
+          </button>
+          <button
+            onClick={() => setActiveStrategy('B')}
+            className={`flex-1 py-3 text-xs font-bold uppercase tracking-wider transition-colors border-b-2 ${
+              activeStrategy === 'B' 
+                ? 'text-red-400 border-red-500 bg-red-900/10' 
+                : 'text-gray-500 border-transparent hover:text-gray-300 hover:bg-[#1a263c]'
+            }`}
+          >
+            🔴 Strategy B
+          </button>
+        </div>
+      )}
+
       {/* Tabs Row */}
-      {activeZones.length > 1 && (
+      {currentZonesList.length > 1 && (
         <div className="flex shrink-0 border-b border-gray-800 bg-[#121a2f]">
-          {activeZones.map((zone, idx) => (
+          {currentZonesList.map((zone, idx) => (
             <button
               key={zone.id}
               onClick={() => setActiveTabId(zone.id)}
@@ -199,9 +233,9 @@ const Sidebar = ({ timeStepIndex, activeZones, nextStep, generateReport, onReset
         {isFinished && (
           <button
             onClick={generateReport}
-            className="w-full py-3 bg-blue-600 text-white hover:bg-blue-500 font-bold uppercase tracking-wider rounded-lg shadow-[0_0_15px_rgba(59,130,246,0.3)] hover:shadow-[0_0_25px_rgba(59,130,246,0.5)] transition-all transform hover:-translate-y-0.5 animate-pulse"
+            className={`w-full py-3 text-white font-bold uppercase tracking-wider rounded-lg transition-all transform hover:-translate-y-0.5 animate-pulse ${simulationMode === 'comparison' ? 'bg-gradient-to-r from-blue-600 to-red-600 hover:from-blue-500 hover:to-red-500 shadow-[0_0_15px_rgba(139,92,246,0.3)]' : 'bg-blue-600 hover:bg-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.3)]'}`}
           >
-            Generate Report
+            {simulationMode === 'comparison' ? 'Compare Results' : 'Generate Report'}
           </button>
         )}
       </div>

@@ -2,11 +2,17 @@ import React from 'react';
 import { Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 
-const createCustomIcon = (agent) => {
+const createCustomIcon = (agent, tint) => {
+  const glowShadow = tint === 'blue' 
+    ? 'shadow-[0_0_15px_rgba(59,130,246,0.8)] border-blue-500' 
+    : tint === 'red' 
+    ? 'shadow-[0_0_15px_rgba(239,68,68,0.8)] border-red-500'
+    : 'shadow-[0_0_15px_rgba(0,0,0,0.8)] border-[#0a0f1e]';
+
   return L.divIcon({
     className: 'bg-transparent border-none',
     html: `
-      <div class="${agent.color} w-10 h-10 rounded-full border-[3px] border-[#0a0f1e] shadow-[0_0_15px_rgba(0,0,0,0.8)] flex items-center justify-center text-xl transition-all duration-500 ease-in-out">
+      <div class="${agent.color} w-10 h-10 rounded-full border-[3px] ${glowShadow} flex items-center justify-center text-xl transition-all duration-500 ease-in-out">
         ${agent.emoji}
       </div>
     `,
@@ -16,8 +22,8 @@ const createCustomIcon = (agent) => {
   });
 };
 
-const AgentMarker = ({ agent }) => {
-  const icon = createCustomIcon(agent);
+const AgentMarker = ({ agent, tint }) => {
+  const icon = createCustomIcon(agent, tint);
 
   return (
     <Marker position={[agent.lat, agent.lng]} icon={icon}>

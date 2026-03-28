@@ -6,6 +6,7 @@ import SetupScreen from './components/SetupScreen';
 import MapView from './components/MapView';
 import Sidebar from './components/Sidebar';
 import ReportModal from './components/ReportModal';
+import ComparisonReport from './components/ComparisonReport';
 
 import { DISASTERS } from './utils/constants';
 import { generateAgents, moveTowardsCenter } from './utils/helpers';
@@ -16,28 +17,35 @@ const randInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
 
 function App() {
   const [currentScreen, setCurrentScreen] = useState('setup'); // 'setup' | 'simulation'
-  const [activeZones, setActiveZones] = useState([]);
-  const [timeStepIndex, setTimeStepIndex] = useState(0); // 0, 1, 2, 3
+  const [simulationMode, setSimulationMode] = useState('single'); // 'single' | 'comparison'
+  const [activeZonesA, setActiveZonesA] = useState([]);
+  const [activeZonesB, setActiveZonesB] = useState([]);
+  const [timeStepIndex, setTimeStepIndex] = useState(0); 
   const [showReport, setShowReport] = useState(false);
 
-  const handleLaunch = (slots) => {
-    const configuredZones = slots.map(slot => {
-       const dInfo = DISASTERS.find(d => d.id === slot.disasterId);
-       return {
-         id: slot.id,
-         disasterId: slot.disasterId,
-         severity: slot.severity,
-         name: dInfo.name,
-         region: dInfo.region,
-         lat: dInfo.lat,
-         lng: dInfo.lng,
-         weather: WEATHER_CONDITIONS[slot.disasterId]
-       };
-    });
-    
-    const zonesWithAgents = generateAgents(configuredZones);
-    
-    setActiveZones(zonesWithAgents);
+  const handleLaunch = (payload) => {
+    const buildZones = (config) => {
+      const configured = config.map(slot => {
+        const dInfo = DISASTERS.find(d => d.id === slot.disasterId);
+        return {
+          id: slot.id, disasterId: slot.disasterId, severity: slot.severity,
+          name: dInfo.name, region: dInfo.region, lat: dInfo.lat, lng: dInfo.lng,
+          weather: WEATHER_CONDITIONS[slot.disasterId]
+        };
+      });
+      return generateAgents(configured);
+    };
+
+    if (payload.mode === 'comparison') {
+      setSimulationMode('comparison');
+      setActiveZonesA(buildZones(payload.configA));
+      setActiveZonesB(buildZones(payload.configB));
+    } else {
+      setSimulationMode('single');
+      setActiveZonesA(buildZones(payload.configA));
+      setActiveZonesB([]);
+    }
+
     setCurrentScreen('simulation');
     setTimeStepIndex(0);
     setShowReport(false);
@@ -45,7 +53,8 @@ function App() {
 
   const handleReset = () => {
     setCurrentScreen('setup');
-    setActiveZones([]);
+    setActiveZonesA([]);
+    setActiveZonesB([]);
     setTimeStepIndex(0);
     setShowReport(false);
   };
@@ -54,7 +63,7 @@ function App() {
     if (timeStepIndex >= 3) return;
     const nextStepIdx = timeStepIndex + 1;
     
-    setActiveZones(prevZones => prevZones.map(zone => {
+    const processZones = (prevZones) => prevZones.map(zone => {
       const updatedAgents = zone.agents.map(agent => {
         let newStatus = agent.status;
         let newScore = agent.score;
@@ -159,15 +168,26 @@ function App() {
 
         return { ...agent, status: newStatus, score: newScore, lat: newLat, lng: newLng };
       });
-
       return { ...zone, agents: updatedAgents };
-    }));
+    });
+
+    setActiveZonesA(prev => processZones(prev));
+    if (simulationMode === 'comparison') {
+      setActiveZonesB(prev => processZones(prev));
+    }
 
     setTimeStepIndex(nextStepIdx);
   };
 
   return (
-    <div className="w-screen h-screen overflow-hidden flex flex-col bg-[#0a0f1e] text-white">
+    <div className="w-screen h-screen overflow-hidden flex flex-col bg-[#0a0f1e] text-white relative">
+      {simulationMode === 'comparison' && currentScreen === 'simulation' && (
+        <div className="absolute top-4 right-6 z-[2000] flex items-center gap-2 bg-[#ff5500]/10 border border-[#ff5500]/50 text-[#ff7733] px-4 py-1.5 rounded-full shadow-[0_0_15px_rgba(255,85,0,0.3)] backdrop-blur-md">
+          <span className="text-xl">⚔️</span>
+          <span className="font-bold tracking-widest uppercase text-xs">Comparison Mode Active</span>
+        </div>
+      )}
+
       {currentScreen === 'setup' && (
         <SetupScreen onLaunch={handleLaunch} />
       )}
@@ -176,19 +196,27 @@ function App() {
         <div className="flex-1 flex flex-row h-full w-full">
           <Sidebar 
             timeStepIndex={timeStepIndex} 
-            activeZones={activeZones} 
+            simulationMode={simulationMode}
+            activeZonesA={activeZonesA} 
+            activeZonesB={activeZonesB}
             nextStep={nextTimeStep} 
             generateReport={() => setShowReport(true)}
             onReset={handleReset}
           />
           <MapView 
-            activeZones={activeZones}
+            simulationMode={simulationMode}
+            activeZonesA={activeZonesA}
+            activeZonesB={activeZonesB}
           />
         </div>
       )}
 
-      {showReport && (
-        <ReportModal activeZones={activeZones} onClose={() => setShowReport(false)} />
+      {showReport && simulationMode === 'single' && (
+        <ReportModal activeZones={activeZonesA} onClose={() => setShowReport(false)} />
+      )}
+
+      {showReport && simulationMode === 'comparison' && (
+        <ComparisonReport activeZonesA={activeZonesA} activeZonesB={activeZonesB} onClose={() => setShowReport(false)} />
       )}
     </div>
   );
