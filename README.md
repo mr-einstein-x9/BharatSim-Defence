@@ -8,7 +8,7 @@
 ![Deployed on Vercel](https://img.shields.io/badge/Deployed-Vercel-black?style=flat-square&logo=vercel)
 ![No API Keys](https://img.shields.io/badge/API%20Keys-None-brightgreen?style=flat-square)
 ![Probabilistic](https://img.shields.io/badge/Engine-Probabilistic-orange?style=flat-square)
-
+![OpResponse Screenshot](./screenshot1.png)![OpResponse Screenshot](./screenshot2.png)![OpResponse Screenshot](./screenshot3.png)![OpResponse Screenshot](./screenshot4.png)![OpResponse Screenshot](./screenshot6.png)![OpResponse Screenshot](./screenshot7.png)
 ---
 
 ## 🌐 Live Demo
