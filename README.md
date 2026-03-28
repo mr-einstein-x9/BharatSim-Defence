@@ -13,7 +13,7 @@
 
 ## 🌐 Live Demo
 
-👉 **[bharat-sim-defence.vercel.app](https://bharat-sim-defence-1ux11wutf-mr-einstein-x9s-projects.vercel.app)**
+👉 **[bharat-sim-defence.vercel.app](https://bharat-sim-defence-jmk8hkk5m-mr-einstein-x9s-projects.vercel.app)**
 
 ---
 
