@@ -130,4 +130,4 @@ MIT License — free to use, modify, and distribute.
 
 ---
 
-*Built in one day as a proof of concept. Inspired by MiroFish. Made for India. 🇮🇳*
+*Built in one day as a proof of concept with AI-assisted coding tools. Inspired by MiroFish. Made for India. 🇮🇳*
