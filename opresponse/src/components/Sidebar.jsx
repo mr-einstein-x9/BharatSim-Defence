@@ -1,19 +1,29 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { TIME_STEPS } from '../utils/constants';
 import { DISASTER_ZONES } from '../data/districtData';
 
-const Sidebar = ({ timeStepIndex, agents, nextStep, generateReport, onReset, disaster, weather }) => {
+const Sidebar = ({ timeStepIndex, activeZones, nextStep, generateReport, onReset }) => {
+  const [activeTabId, setActiveTabId] = useState(activeZones[0]?.id || null);
   const [isWeatherExpanded, setIsWeatherExpanded] = useState(false);
-  const currentStepLabel = TIME_STEPS[timeStepIndex];
-  const isFinished = timeStepIndex === TIME_STEPS.length - 1;
 
-  const sortedAgents = [...agents].sort((a, b) => a.type.localeCompare(b.type));
+  const currentStepLabel = TIME_STEPS[timeStepIndex] || '';
+  const isFinished = timeStepIndex >= TIME_STEPS.length - 1;
+
+  // Auto-select first tab on load or reset
+  useEffect(() => {
+    if (activeZones.length > 0 && !activeZones.find(z => z.id === activeTabId)) {
+      setActiveTabId(activeZones[0].id);
+    }
+  }, [activeZones, activeTabId]);
+
+  const activeZone = activeZones.find(z => z.id === activeTabId) || activeZones[0];
+  const sortedAgents = activeZone ? [...activeZone.agents].sort((a, b) => a.type.localeCompare(b.type)) : [];
 
   let popRiskText = '';
   let popColorClass = '';
 
-  if (disaster && disaster.id && DISASTER_ZONES[disaster.id]) {
-    const totalPop = DISASTER_ZONES[disaster.id].affectedDistricts.reduce((sum, d) => sum + d.population, 0);
+  if (activeZone && activeZone.disasterId && DISASTER_ZONES[activeZone.disasterId]) {
+    const totalPop = DISASTER_ZONES[activeZone.disasterId].affectedDistricts.reduce((sum, d) => sum + d.population, 0);
     const popInLakhs = (totalPop / 100000).toFixed(2);
     popRiskText = `⚠️ Population at Risk: ${popInLakhs} Lakh`;
     
@@ -42,18 +52,37 @@ const Sidebar = ({ timeStepIndex, agents, nextStep, generateReport, onReset, dis
         </button>
       </div>
 
+      {/* Tabs Row */}
+      {activeZones.length > 1 && (
+        <div className="flex shrink-0 border-b border-gray-800 bg-[#121a2f]">
+          {activeZones.map((zone, idx) => (
+            <button
+              key={zone.id}
+              onClick={() => setActiveTabId(zone.id)}
+              className={`flex-1 py-2 text-xs font-bold uppercase tracking-wider transition-colors border-b-2 ${
+                activeTabId === zone.id 
+                  ? 'text-emerald-400 border-emerald-500 bg-[#162032]' 
+                  : 'text-gray-500 border-transparent hover:text-gray-300 hover:bg-[#1a263c]'
+              }`}
+            >
+              Zone {idx + 1}
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* Main Scrollable Area */}
       <div className="flex-1 overflow-y-auto flex flex-col">
         
         {/* Population at Risk */}
-        {disaster && (
+        {activeZone && (
           <div className={`mx-4 mt-4 p-2 rounded border text-xs font-semibold flex items-center justify-center text-center shadow-sm shrink-0 ${popColorClass}`}>
             {popRiskText}
           </div>
         )}
 
         {/* Expandable Weather Panel */}
-        {weather && (
+        {activeZone && activeZone.weather && (
           <div className="mx-4 mt-4 bg-[#162032] border border-gray-700/80 rounded-lg shadow-lg overflow-hidden shrink-0">
             <button 
               onClick={() => setIsWeatherExpanded(!isWeatherExpanded)}
@@ -70,13 +99,13 @@ const Sidebar = ({ timeStepIndex, agents, nextStep, generateReport, onReset, dis
             {isWeatherExpanded && (
               <div className="p-3 pt-0 border-t border-gray-700/50">
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="text-xl">{weather.icon}</span>
+                  <span className="text-xl">{activeZone.weather.icon}</span>
                   <p className="text-emerald-400 text-xs font-mono font-semibold m-0">
-                    {weather.type} <span className="text-gray-500">|</span> Wind: {weather.windSpeed} <span className="text-gray-500">|</span> Vis: {weather.visibility}
+                    {activeZone.weather.type} <span className="text-gray-500">|</span> Wind: {activeZone.weather.windSpeed} <span className="text-gray-500">|</span> Vis: {activeZone.weather.visibility}
                   </p>
                 </div>
                 <div className="space-y-1 mt-2">
-                  {Object.entries(weather.effects).map(([key, effect]) => {
+                  {Object.entries(activeZone.weather.effects).map(([key, effect]) => {
                     const agentNames = { army: '🪖 Army', ndrf: '🟠 NDRF', doctors: '👨⚕️ Doctors', police: '👮 Police', supplyChain: '🚚 Supply Chain', civilians: '👥 Civilians' };
                     return (
                       <div key={key} className="text-[10px] text-gray-400">

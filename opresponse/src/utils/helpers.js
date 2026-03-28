@@ -1,31 +1,69 @@
 import { AGENT_TYPES } from './constants';
 
-export const generateAgents = (disasterLat, disasterLng) => {
-  const newAgents = [];
-  let idCounter = 1;
+export const calculateAgentSplit = (activeZones) => {
+  const TOTAL_AGENTS_PER_TYPE = 3;
+  const numZones = activeZones.length;
+  if(numZones === 0) return [];
+  
+  // Base allocation: Everyone gets 1
+  let split = activeZones.map(z => ({ ...z, agentsCount: 1 }));
+  let remaining = TOTAL_AGENTS_PER_TYPE - numZones;
 
-  AGENT_TYPES.forEach(typeObj => {
-    for (let i = 0; i < 3; i++) {
-      // Generate random offset between -2.5 and +2.5 degrees
-      const latOffset = (Math.random() * 5) - 2.5;
-      const lngOffset = (Math.random() * 5) - 2.5;
-      
-      newAgents.push({
-        id: `agent-${idCounter++}`,
-        name: `${typeObj.type} Unit ${i + 1}`,
-        type: typeObj.type,
-        emoji: typeObj.emoji,
-        color: typeObj.color,
-        dot: typeObj.dot,
-        lat: disasterLat + latOffset,
-        lng: disasterLng + lngOffset,
-        status: 'Standby',
-        score: null,
-      });
-    }
+  // Distribute remaining based on severity
+  if (remaining > 0) {
+     const severityScores = { 'Low': 1, 'Medium': 2, 'High': 3 };
+     // Sort indices by severity (descending)
+     const sortedIndices = split.map((z, i) => i).sort((a, b) => severityScores[split[b].severity] - severityScores[split[a].severity]);
+     
+     let i = 0;
+     while (remaining > 0) {
+       split[sortedIndices[i % numZones]].agentsCount++;
+       remaining--;
+       i++;
+     }
+  }
+
+  return split.map(z => z.agentsCount);
+};
+
+export const generateAgents = (activeZones) => {
+  const agentCountsPerZone = calculateAgentSplit(activeZones);
+  const newZones = [];
+  
+  let globalIdCounter = 1;
+
+  activeZones.forEach((zone, index) => {
+    const agentsForThisZone = [];
+    const count = agentCountsPerZone[index];
+    
+    AGENT_TYPES.forEach(typeObj => {
+      for (let i = 0; i < count; i++) {
+        const latOffset = (Math.random() * 5) - 2.5;
+        const lngOffset = (Math.random() * 5) - 2.5;
+        
+        agentsForThisZone.push({
+          id: `agent-${globalIdCounter++}`,
+          name: `${typeObj.type} Unit - ${zone.id.replace('zone-', 'Z')}`,
+          type: typeObj.type,
+          emoji: typeObj.emoji,
+          color: typeObj.color,
+          dot: typeObj.dot,
+          lat: zone.lat + latOffset,
+          lng: zone.lng + lngOffset,
+          status: 'Standby',
+          score: null,
+          zoneId: zone.id
+        });
+      }
+    });
+
+    newZones.push({
+      ...zone,
+      agents: agentsForThisZone
+    });
   });
 
-  return newAgents;
+  return newZones;
 };
 
 export const moveTowardsCenter = (agentLat, agentLng, centerLat, centerLng) => {
