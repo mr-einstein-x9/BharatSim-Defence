@@ -1,70 +1,50 @@
-# OpResponse — India Disaster Response Simulator Implementation Plan
+# Emergent Simulation Engine Upgrade
 
-The objective is to build a frontend-only React application called "OpResponse," which simulates disaster response in India. It includes a setup screen, a map-based simulation interface, time-stepped logic for moving and updating agent statuses, and a final generated after-action report modal.
+This proposal shifts OpResponse from a deterministic simulation to a fully probabilistic, causal engine where outcomes dynamically emerge from compounding environmental factors and chain reactions rather than hardcoded scores.
 
 ## User Review Required
 
-> [!IMPORTANT]  
-> Please review the proposed logic for agent initial placement and the method of moving towards the disaster center:
-> - **Initial Spawn Position**: Agents will spawn randomly within an approximate radius (e.g., ~2.5 degrees of lat/lng variance) around the selected disaster center.
-> - **Movement Logic**: During time steps (T+6, T+24, T+72), moving agents will shift 30-50% closer to the exact disaster center to simulate "gradual shift" rather than instant teleportation. Does this sound correct for the simulation?
+- Is the placement of the "🎲 Probabilistic Run" badge appropriate inside the `ReportModal` and `ComparisonReport` main title banners?
+- `Zone` configuration models will be extended to include `triggeredChains: []` at launch to locally store event history. 
+- The cascading events mandate that at `T+72hr`, some agents (`Doctors`) must be scored *before* others (`Civilians`) to ascertain if late-stage chain reactions (Chain 3) will be triggered. The engine will handle this internally.
 
 ## Proposed Changes
 
 ---
 
-### Global Config and Styling
+### Logic Modifications
 
-#### [MODIFY] [index.css](file:///c:/Users/Nikhil%20Sharma/PRojects/BharatSim%20Defence/opresponse/src/index.css)
-- Add Tailwind CSS directives (`@tailwind base; @tailwind components; @tailwind utilities;`).
-- Set a dark background body color default (`#0a0f1e`).
+#### [NEW] [src/simulation/causalChains.js](file:///c:/Users/Nikhil%20Sharma/PRojects/BharatSim%20Defence/opresponse/src/simulation/causalChains.js)
+- A new dedicated file exporting trigger configurations and string logic for the 5 mandated core cascade events.
+
+#### [MODIFY] [src/utils/helpers.js](file:///c:/Users/Nikhil%20Sharma/PRojects/BharatSim%20Defence/opresponse/src/utils/helpers.js)
+- Introduce `getProbabilisticScore(base, variance)` returning a randomized range centered around base.
+- Implement `calculateEmergentScore(agent, zone, chains)` acting as the ultimate aggregator of chain penalties, randomized weather penalties, and base variance. Returns a detailed breakdown metric object.
+
+#### [MODIFY] [src/App.js](file:///c:/Users/Nikhil%20Sharma/PRojects/BharatSim%20Defence/opresponse/src/App.js)
+- Instantiate `triggeredChains: []` for all zones in `handleLaunch`.
+- Severely truncate the hardcoded score assignments inside `nextTimeStep`.
+- Embed chain trigger logic synchronously into the Time Step indexes:
+  - **T+6hr**: Check Flood, Earthquake, and Cyclone triggers.
+  - **T+24hr**: Check Supply Chain Blocked triggers.
+  - **T+72hr**: Evaluate emergent scores for Medical units, conditionally inject the Civilian Cascade trigger, then resolve all final agent scores and append their `breakdown` payloads.
 
 ---
 
-### Core Components
+### UI/UX Refactors
 
-#### [MODIFY] [App.js](file:///c:/Users/Nikhil%20Sharma/PRojects/BharatSim%20Defence/opresponse/src/App.js)
-- Handle global state: `currentScreen` (Setup, Sim), `simulationParams` (Disaster, Severity), `timeStepIndex` (0, 1, 2, 3 mapped to T+0, T+6, T+24, T+72).
-- Handle agent state: an array of 18 agent objects (`id`, `name`, `type`, `status`, `lat`, `lng`, `score`).
-- Implement the "Next Time Step" transition logic according to the required spec (e.g., Army moving at T+6, Doctors moving at T+24).
+#### [MODIFY] [src/components/Sidebar.jsx](file:///c:/Users/Nikhil%20Sharma/PRojects/BharatSim%20Defence/opresponse/src/components/Sidebar.jsx)
+- Append a **"⚡ Chain Events"** list conditionally appearing underneath the Weather panel mapping over the active zone's local `triggeredChains`.
 
-#### [NEW] [SetupScreen.jsx](file:///c:/Users/Nikhil%20Sharma/PRojects/BharatSim%20Defence/opresponse/src/components/SetupScreen.jsx)
-- Dark military theme UI.
-- Dropdown for 3 Disaster Types (Flood, Earthquake, Cyclone).
-- Radio buttons for Severity (Low, Medium, High).
-- Big "Launch Simulation" button that passes parameters to `App.js`.
-
-#### [NEW] [MapView.jsx](file:///c:/Users/Nikhil%20Sharma/PRojects/BharatSim%20Defence/opresponse/src/components/MapView.jsx)
-- Renders `react-leaflet` instances (`MapContainer`, `TileLayer`).
-- Shows the disaster impact zone (a semi-transparent red `<Circle>`).
-- Renders `AgentMarker` components dynamically based on agent states.
-
-#### [NEW] [AgentMarker.jsx](file:///c:/Users/Nikhil%20Sharma/PRojects/BharatSim%20Defence/opresponse/src/components/AgentMarker.jsx)
-- Custom `L.divIcon` displaying a colored circular background and exact agent emoji.
-- Includes a `<Popup>` showing `name`, `type`, `status`, and `score` when clicked.
-
-#### [NEW] [Sidebar.jsx](file:///c:/Users/Nikhil%20Sharma/PRojects/BharatSim%20Defence/opresponse/src/components/Sidebar.jsx)
-- Shows the current time step (e.g., "T+6hr").
-- Contains a scrollable list of all 18 agents with their emojis, names, and a colored status dot (Green for Completed/On Ground, Yellow for Moving/Standby, Red for Blocked).
-- "Next Time Step" button.
-- "Generate Report" button (conditionally rendered after T+72hr).
-
-#### [NEW] [ReportModal.jsx](file:///c:/Users/Nikhil%20Sharma/PRojects/BharatSim%20Defence/opresponse/src/components/ReportModal.jsx)
-- Full-screen absolute overlay.
-- Calculates and renders the overall effectiveness score (color-coded).
-- Breaks down coordination, coverage, and civilian safety scores.
-- Renders the Agent Performance Table and generated recommendation text based on score condition rules.
+#### [MODIFY] [src/components/ReportModal.jsx](file:///c:/Users/Nikhil%20Sharma/PRojects/BharatSim%20Defence/opresponse/src/components/ReportModal.jsx) & [ComparisonReport.jsx](file:///c:/Users/Nikhil%20Sharma/PRojects/BharatSim%20Defence/opresponse/src/components/ComparisonReport.jsx)
+- Insert the "🎲 Probabilistic Run" badge.
+- Build the **"⚡ Cascade Analysis"** block beneath the metric boxes summarizing activated events.
+- Upgrade the generated agent rows map in both reports to display the hoverable `"Score Breakdown"` summarizing exactly how the metrics dynamically merged (`Base: 100 | Chain penalty: -25...`).
 
 ## Open Questions
-
-1. Which Tailwind version is currently installed in the project? (Based on `tailwind.config.js` it seems standard 3.x, but I'll ensure we use typical 3.x classes).
-2. Are you fine with using pure random number generation functions within React to place the agents initially, or do you require fixed starting coordinates?
+- Should the Chain Events red alert box in the sidebar autoscroll or just lengthen the container?  (Assuming standard lengthened container to match layout).
 
 ## Verification Plan
-
-### Manual Verification
-- Launch the application and select each simulation disaster type.
-- Verify 18 agent markers are rendered using Leaflet.
-- Step through the time steps (T+6, T+24, T+72) and visually verify agent markers incrementally moving towards the center.
-- Verify "Blocked" chances apply to Civilians and conditionally to Supply Chain if Severity is "High".
-- Verify Final Report calculates average correctly according to rule sets.
+1. Launch Simulation -> Verify sidebars show accumulating cascade warnings at T+6, T+24.
+2. Advance to T+72 and trigger Comparison Report -> Verify tooltips exist displaying precise numeric breakdowns linking to `finalScore`.
+3. Verify running identical setups (Comparison mode with same zones) returns functionally distinct values and wins, proving variance integration.
