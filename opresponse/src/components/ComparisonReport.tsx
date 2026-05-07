@@ -1,11 +1,17 @@
 import React, { useMemo, useEffect, useState } from 'react';
 import { DISASTER_ZONES } from '../data/districtData';
+import { DisasterZone } from '../types';
 
-const ComparisonReport = ({ activeZonesA, activeZonesB, onClose }) => {
+interface ComparisonReportProps {
+  activeZonesA: DisasterZone[];
+  activeZonesB: DisasterZone[];
+  onClose: () => void;
+}
+
+const ComparisonReport: React.FC<ComparisonReportProps> = ({ activeZonesA, activeZonesB, onClose }) => {
   const [animate, setAnimate] = useState(false);
 
   useEffect(() => {
-    // Trigger animation after render
     const t = setTimeout(() => setAnimate(true), 100);
     return () => clearTimeout(t);
   }, []);
@@ -18,8 +24,8 @@ const ComparisonReport = ({ activeZonesA, activeZonesB, onClose }) => {
     insights,
     exportText
   } = useMemo(() => {
-    const calcMetrics = (zones) => {
-      const avg = (arr) => arr.length ? Math.round(arr.reduce((sum, item) => sum + (item.score || 0), 0) / arr.length) : 0;
+    const calcMetrics = (zones: DisasterZone[]) => {
+      const avg = (arr: { score: number | null }[]) => arr.length ? Math.round(arr.reduce((sum, item) => sum + (item.score || 0), 0) / arr.length) : 0;
       
       const zData = zones.map(zone => {
         const army = zone.agents.filter(a => a.type === 'Army');
@@ -36,7 +42,7 @@ const ComparisonReport = ({ activeZonesA, activeZonesB, onClose }) => {
           cov: avg([{score: avg(doctors)}, {score: avg(sc)}]),
           sup: avg(sc),
           civ: avg(civs),
-          totPop: (DISASTER_ZONES[zone.disasterId]?.affectedDistricts || []).reduce((sum, d) => sum + d.population, 0)
+          totPop: ((DISASTER_ZONES as any)[zone.disasterId]?.affectedDistricts || []).reduce((sum: number, d: any) => sum + d.population, 0)
         };
       });
 
@@ -69,21 +75,18 @@ const ComparisonReport = ({ activeZonesA, activeZonesB, onClose }) => {
     if (diff > 3) { winner = 'A'; label = '🔵 STRATEGY A WINS'; }
     else if (diff < -3) { winner = 'B'; label = '🔴 STRATEGY B WINS'; }
 
-    let generatedInsights = [];
+    let generatedInsights: string[] = [];
     if (mA.civ > mB.civ + 10) generatedInsights.push('Strategy A showed superior civilian protection.');
     else if (mB.civ > mA.civ + 10) generatedInsights.push('Strategy B showed superior civilian protection.');
 
-    if (mA.sup < 50 && mB.sup >= 50) generatedInsights.push('Strategy A suffered severe supply chain blockages, possibly due to high severity configurations.');
-    else if (mB.sup < 50 && mA.sup >= 50) generatedInsights.push('Strategy B suffered severe supply chain blockages, possibly due to high severity configurations.');
+    if (mA.sup < 50 && mB.sup >= 50) generatedInsights.push('Strategy A suffered severe supply chain blockages.');
+    else if (mB.sup < 50 && mA.sup >= 50) generatedInsights.push('Strategy B suffered severe supply chain blockages.');
 
-    if (mA.zoneCount === 3 && mB.zoneCount === 3) generatedInsights.push('Both strategies struggled with coordination scaling under maximum multi-zone stress.');
+    if (winner === 'A') generatedInsights.push('Ultimately, Strategy A provided a more stable deployment distribution.');
+    else if (winner === 'B') generatedInsights.push('Ultimately, Strategy B provided a more stable deployment distribution.');
+    else if (winner === 'draw') generatedInsights.push('Both strategies yielded functionally identical outcomes.');
 
-    if (winner === 'A') generatedInsights.push('Ultimately, Strategy A provided a more stable deployment distribution, resulting in fewer critical operational failures.');
-    else if (winner === 'B') generatedInsights.push('Ultimately, Strategy B provided a more stable deployment distribution, resulting in fewer critical operational failures.');
-    else if (winner === 'draw') generatedInsights.push('Both strategies yielded functionally identical outcomes. The variations in deployment tactics balanced each other out.');
-
-    // Export text build
-    const eText = `OpResponse Comparison Report\n--------------------------\nRESULT: ${label}\nOverall | A: ${mA.overall}/100 vs B: ${mB.overall}/100\nSpeed | A: ${mA.speed} | B: ${mB.speed}\nCoordination | A: ${mA.coord} | B: ${mB.coord}\nCoverage | A: ${mA.cov} | B: ${mB.cov}\nSupply | A: ${mA.sup} | B: ${mB.sup}\nCivilian | A: ${mA.civ} | B: ${mB.civ}\n--------------------------`;
+    const eText = `OpResponse Comparison Report\n--------------------------\nRESULT: ${label}\nOverall | A: ${mA.overall}/100 vs B: ${mB.overall}/100\n--------------------------`;
 
     return { metricsA: mA, metricsB: mB, overallWinner: winner, winnerLabel: label, insights: generatedInsights, exportText: eText };
   }, [activeZonesA, activeZonesB]);
@@ -93,7 +96,7 @@ const ComparisonReport = ({ activeZonesA, activeZonesB, onClose }) => {
     alert('Copied specific comparison metrics to clipboard!');
   };
 
-  const BarPair = ({ label, scoreA, scoreB }) => {
+  const BarPair = ({ label, scoreA, scoreB }: { label: string, scoreA: number, scoreB: number }) => {
     let wA = animate ? `${scoreA}%` : '0%';
     let wB = animate ? `${scoreB}%` : '0%';
     return (
@@ -102,23 +105,19 @@ const ComparisonReport = ({ activeZonesA, activeZonesB, onClose }) => {
           <span className="text-xs font-bold text-gray-300 uppercase tracking-widest">{label}</span>
         </div>
         <div className="bg-[#0f1627] rounded-md p-3 border border-gray-800 space-y-3">
-          {/* Strategy A Bar */}
           <div className="flex items-center">
             <span className="w-6 font-bold text-xs text-blue-400">A</span>
             <div className="flex-1 bg-[#1a2035] h-6 rounded-full overflow-hidden relative border border-gray-700">
-              <div className="absolute top-0 left-0 h-full bg-[#3b82f6] transition-all duration-800 ease-out flex items-center justify-end pr-2 shadow-[0_0_10px_rgba(59,130,246,0.6)]" style={{ width: wA }}>
-              </div>
+              <div className="absolute top-0 left-0 h-full bg-[#3b82f6] transition-all duration-800 ease-out flex items-center justify-end pr-2 shadow-[0_0_10px_rgba(59,130,246,0.6)]" style={{ width: wA }}></div>
             </div>
             <span className="w-12 text-right font-mono font-bold text-sm text-blue-300 flex justify-end gap-1">
               {scoreA} {scoreA > scoreB && <span className="text-emerald-400">✓</span>}
             </span>
           </div>
-          {/* Strategy B Bar */}
           <div className="flex items-center">
             <span className="w-6 font-bold text-xs text-red-400">B</span>
             <div className="flex-1 bg-[#1a2035] h-6 rounded-full overflow-hidden relative border border-gray-700">
-              <div className="absolute top-0 left-0 h-full bg-[#ef4444] transition-all duration-800 ease-out flex items-center justify-end pr-2 shadow-[0_0_10px_rgba(239,68,68,0.6)]" style={{ width: wB }}>
-              </div>
+              <div className="absolute top-0 left-0 h-full bg-[#ef4444] transition-all duration-800 ease-out flex items-center justify-end pr-2 shadow-[0_0_10px_rgba(239,68,68,0.6)]" style={{ width: wB }}></div>
             </div>
             <span className="w-12 text-right font-mono font-bold text-sm text-red-300 flex justify-end gap-1">
               {scoreB} {scoreB > scoreA && <span className="text-emerald-400">✓</span>}
@@ -129,12 +128,13 @@ const ComparisonReport = ({ activeZonesA, activeZonesB, onClose }) => {
     );
   };
 
-  const getWinnerClass = (sA, sB) => {
+  const getWinnerClass = (sA: number, sB: number) => {
     if (sA > sB) return 'text-blue-400';
     if (sB > sA) return 'text-red-400';
     return 'text-gray-500';
   };
-  const getWinnerLabel = (sA, sB) => {
+
+  const getWinnerLabel = (sA: number, sB: number) => {
     if (sA > sB) return 'Strategy A';
     if (sB > sA) return 'Strategy B';
     return 'Draw';
@@ -143,14 +143,10 @@ const ComparisonReport = ({ activeZonesA, activeZonesB, onClose }) => {
   return (
     <div className="fixed inset-0 z-[9999] bg-[#050810]/95 backdrop-blur-xl flex justify-center items-center overflow-auto py-12 px-6">
       <div className="w-full max-w-5xl bg-[#0a0f1e] border border-gray-800 rounded-2xl shadow-2xl relative max-h-[90vh] overflow-y-auto">
-        
-        {/* Glow Effects */}
         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-600 via-gray-500 to-red-600"></div>
         <div className={`absolute top-0 left-1/2 -ml-32 w-64 h-32 rounded-full blur-[80px] opacity-20 ${overallWinner === 'A' ? 'bg-blue-500' : overallWinner === 'B' ? 'bg-red-500' : 'bg-gray-500'}`}></div>
 
         <div className="p-10 relative z-10 flex flex-col gap-10">
-          
-          {/* Header */}
           <div className="text-center border-b border-gray-800/60 pb-8 relative">
             <div className="absolute top-0 right-0 bg-purple-900/20 border border-purple-500/40 text-purple-400 px-3 py-1 rounded text-[10px] uppercase tracking-widest font-bold flex items-center gap-1 shadow-[0_0_10px_rgba(168,85,247,0.2)]">
               <span className="text-sm">🎲</span> Probabilistic Run
@@ -160,7 +156,6 @@ const ComparisonReport = ({ activeZonesA, activeZonesB, onClose }) => {
             </h1>
           </div>
 
-          {/* Section 1 - Winner Banner */}
           <div className={`py-6 px-4 rounded-2xl border text-center flex flex-col gap-4 shadow-lg ${overallWinner === 'A' ? 'bg-blue-900/10 border-blue-500/30 shadow-blue-500/10' : overallWinner === 'B' ? 'bg-red-900/10 border-red-500/30 shadow-red-500/10' : 'bg-gray-900/30 border-gray-700 shadow-gray-700/10'}`}>
             <h2 className={`text-5xl font-black uppercase tracking-widest m-0 drop-shadow-md ${overallWinner === 'A' ? 'text-blue-400' : overallWinner === 'B' ? 'text-red-400' : 'text-gray-300'}`}>
               {winnerLabel}
@@ -173,7 +168,6 @@ const ComparisonReport = ({ activeZonesA, activeZonesB, onClose }) => {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-            {/* Section 2 - Bar Charts */}
             <div>
                <h3 className="text-lg font-bold text-gray-300 uppercase tracking-widest mb-6 border-b border-gray-800 pb-2">Metric Comparison</h3>
                <BarPair label="Speed Score" scoreA={metricsA.speed} scoreB={metricsB.speed} />
@@ -184,7 +178,6 @@ const ComparisonReport = ({ activeZonesA, activeZonesB, onClose }) => {
             </div>
 
             <div className="flex flex-col gap-10">
-              {/* Section 3 - Table */}
               <div>
                 <h3 className="text-lg font-bold text-gray-300 uppercase tracking-widest mb-6 border-b border-gray-800 pb-2">Category Winners</h3>
                 <div className="overflow-hidden rounded-xl border border-gray-800">
@@ -217,7 +210,6 @@ const ComparisonReport = ({ activeZonesA, activeZonesB, onClose }) => {
                 </div>
               </div>
 
-              {/* Section 4 - Insights */}
               <div>
                 <h3 className="text-lg font-bold text-gray-300 uppercase tracking-widest mb-6 border-b border-gray-800 pb-2">Key Insights</h3>
                 <div className="bg-[#121a2f] border border-gray-800 rounded-xl p-6">
@@ -234,66 +226,6 @@ const ComparisonReport = ({ activeZonesA, activeZonesB, onClose }) => {
             </div>
           </div>
 
-          {/* Section 5 - Cascade Analysis */}
-          <div className="border-t border-gray-800/60 pt-8 mt-4">
-             <h2 className="text-xl font-bold text-gray-300 uppercase tracking-widest mb-6 flex items-center gap-2">
-               <span className="text-xl leading-none">⚡</span> Cascade Analysis
-             </h2>
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-               
-               {/* Strategy A Cascades */}
-               <div className="bg-[#121a2f] border border-blue-500/20 rounded-xl p-5 shadow-lg">
-                 <h3 className="text-sm font-bold text-blue-400 uppercase tracking-widest mb-4 border-b border-blue-500/20 pb-2">Strategy A Triggers</h3>
-                 <div className="space-y-4">
-                   {activeZonesA.some(z => z.triggeredChains && z.triggeredChains.length > 0) ? (
-                     activeZonesA.map((z, i) => z.triggeredChains?.length > 0 && (
-                       <div key={`a-zone-${i}`}>
-                         <span className="text-[10px] font-bold text-blue-300/60 uppercase mb-2 block">{z.name}</span>
-                         <div className="space-y-2">
-                           {z.triggeredChains.map((c, j) => (
-                             <div key={j} className="bg-[#0a0f1e] text-[10px] text-blue-200 p-2 rounded border border-blue-500/10 flex flex-col font-mono">
-                               <span className="font-bold text-blue-400 mb-0.5 opacity-80 text-[9px]">T+{c.step === 1 ? '6' : c.step === 2 ? '24' : '72'}hr</span>
-                               <span className="mb-1 leading-snug">{c.event}</span>
-                               <span className="text-blue-400/80 font-bold">Impact: {c.impacts.map(imp => `${imp.type} -${imp.penalty}`).join(' | ')}</span>
-                             </div>
-                           ))}
-                         </div>
-                       </div>
-                     ))
-                   ) : (
-                     <span className="text-[10px] text-gray-500 font-mono italic">No cascades triggered in Strategy A.</span>
-                   )}
-                 </div>
-               </div>
-
-               {/* Strategy B Cascades */}
-               <div className="bg-[#121a2f] border border-red-500/20 rounded-xl p-5 shadow-lg">
-                 <h3 className="text-sm font-bold text-red-400 uppercase tracking-widest mb-4 border-b border-red-500/20 pb-2">Strategy B Triggers</h3>
-                 <div className="space-y-4">
-                   {activeZonesB.some(z => z.triggeredChains && z.triggeredChains.length > 0) ? (
-                     activeZonesB.map((z, i) => z.triggeredChains?.length > 0 && (
-                       <div key={`b-zone-${i}`}>
-                         <span className="text-[10px] font-bold text-red-300/60 uppercase mb-2 block">{z.name}</span>
-                         <div className="space-y-2">
-                           {z.triggeredChains.map((c, j) => (
-                             <div key={j} className="bg-[#0a0f1e] text-[10px] text-red-200 p-2 rounded border border-red-500/10 flex flex-col font-mono">
-                               <span className="font-bold text-red-400 mb-0.5 opacity-80 text-[9px]">T+{c.step === 1 ? '6' : c.step === 2 ? '24' : '72'}hr</span>
-                               <span className="mb-1 leading-snug">{c.event}</span>
-                               <span className="text-red-400/80 font-bold">Impact: {c.impacts.map(imp => `${imp.type} -${imp.penalty}`).join(' | ')}</span>
-                             </div>
-                           ))}
-                         </div>
-                       </div>
-                     ))
-                   ) : (
-                     <span className="text-[10px] text-gray-500 font-mono italic">No cascades triggered in Strategy B.</span>
-                   )}
-                 </div>
-               </div>
-
-             </div>
-          </div>
-
           <div className="flex justify-center items-center gap-4 mt-6 border-t border-gray-800/60 pt-8">
             <button 
               onClick={handleExport}
@@ -308,7 +240,6 @@ const ComparisonReport = ({ activeZonesA, activeZonesB, onClose }) => {
               Close Report
             </button>
           </div>
-
         </div>
       </div>
     </div>

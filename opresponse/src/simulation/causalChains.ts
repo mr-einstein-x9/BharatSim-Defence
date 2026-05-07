@@ -1,6 +1,14 @@
-// src/simulation/causalChains.js
+import { DisasterZone } from '../types';
 
-export const CHAINS = [
+export interface Chain {
+  id: string;
+  triggerStep: number;
+  check: (zone: DisasterZone, context?: any) => boolean;
+  event: string;
+  impacts: { type: string, penalty: number }[];
+}
+
+export const CHAINS: Chain[] = [
   {
     id: 'flood_supply',
     triggerStep: 1, // T+6hr
@@ -32,18 +40,15 @@ export const CHAINS = [
   {
     id: 'medical_civilian',
     triggerStep: 3, // T+72hr
-    // Check is performed after Doctors are scored. 
-    // Passes an explicit boolean indicating if Doctors scored < 60
     check: (zone, context) => context?.doctorsFailed === true,
     event: 'Medical delay → Increased civilian casualties',
     impacts: [{ type: 'Civilians', penalty: 12 }]
   }
 ];
 
-export const evaluateChainsForStep = (zone, stepIndex, context = null) => {
-  const newChains = [];
+export const evaluateChainsForStep = (zone: DisasterZone, stepIndex: number, context: any = null) => {
+  const newChains: any[] = [];
   CHAINS.filter(c => c.triggerStep === stepIndex).forEach(chain => {
-    // Prevent duplicate triggers across the same zone (if step index was called twice, theoretically shouldn't happen)
     const alreadyFired = zone.triggeredChains?.some(tc => tc.id === chain.id);
     if (!alreadyFired && chain.check(zone, context)) {
       newChains.push({

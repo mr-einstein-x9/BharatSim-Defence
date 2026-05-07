@@ -1,4 +1,14 @@
-export const DISASTERS = [
+import { AgentType } from "../types";
+
+export interface DisasterInfo {
+  id: string;
+  name: string;
+  lat: number;
+  lng: number;
+  region: string;
+}
+
+export const DISASTERS: DisasterInfo[] = [
   { id: 'flood', name: 'Flood', lat: 26.0, lng: 91.0, region: 'Assam/Bihar' },
   { id: 'earthquake', name: 'Earthquake', lat: 30.0, lng: 79.0, region: 'Uttarakhand' },
   { id: 'cyclone', name: 'Cyclone', lat: 20.0, lng: 86.0, region: 'Odisha coast' }
@@ -6,7 +16,14 @@ export const DISASTERS = [
 
 export const TIME_STEPS = ['T+0hr', 'T+6hr', 'T+24hr', 'T+72hr'];
 
-export const AGENT_TYPES = [
+export interface AgentTypeDef {
+  type: AgentType;
+  emoji: string;
+  color: string;
+  dot: string;
+}
+
+export const AGENT_TYPES: AgentTypeDef[] = [
   { type: 'Army', emoji: '🪖', color: 'bg-green-600', dot: 'bg-green-500' },
   { type: 'NDRF', emoji: '🟠', color: 'bg-orange-500', dot: 'bg-orange-400' },
   { type: 'Doctors', emoji: '👨⚕️', color: 'bg-blue-500', dot: 'bg-blue-400' },

@@ -1,23 +1,43 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { TIME_STEPS } from '../utils/constants';
 import { DISASTER_ZONES } from '../data/districtData';
+import { DisasterZone } from '../types';
+import AnalyticsDashboard from './AnalyticsDashboard';
+import CommandLog from './CommandLog';
+import { useSimulationStore } from '../store/useSimulationStore';
 
-const Sidebar = ({ timeStepIndex, simulationMode, activeZonesA, activeZonesB, nextStep, generateReport, onReset, activeZones }) => {
-  const [activeStrategy, setActiveStrategy] = useState('A');
+interface SidebarProps {
+  timeStepIndex: number;
+  simulationMode: 'single' | 'comparison';
+  activeZonesA: DisasterZone[];
+  activeZonesB: DisasterZone[];
+  nextStep: () => void;
+  generateReport: () => void;
+  onReset: () => void;
+}
+
+const Sidebar: React.FC<SidebarProps> = ({ 
+  simulationMode, 
+  activeZonesA, 
+  activeZonesB, 
+  generateReport, 
+  onReset 
+}) => {
+  const { simTime, logs } = useSimulationStore();
+  const [activeStrategy, setActiveStrategy] = useState<'A' | 'B'>('A');
   
-  // Backwards compatibility or single mode
   const currentZonesList = useMemo(() => 
     simulationMode === 'comparison' 
       ? (activeStrategy === 'A' ? activeZonesA : activeZonesB) 
-      : (activeZonesA || activeZones || []), 
-    [simulationMode, activeStrategy, activeZonesA, activeZonesB, activeZones]
+      : activeZonesA, 
+    [simulationMode, activeStrategy, activeZonesA, activeZonesB]
   );
 
-  const [activeTabId, setActiveTabId] = useState(currentZonesList[0]?.id || null);
+  const [activeTabId, setActiveTabId] = useState<string | null>(currentZonesList[0]?.id || null);
   const [isWeatherExpanded, setIsWeatherExpanded] = useState(false);
 
+  const timeStepIndex = simTime >= 72 ? 3 : (simTime >= 24 ? 2 : (simTime >= 6 ? 1 : 0));
   const currentStepLabel = TIME_STEPS[timeStepIndex] || '';
-  const isFinished = timeStepIndex >= TIME_STEPS.length - 1;
 
   useEffect(() => {
     if (currentZonesList.length > 0 && !currentZonesList.find(z => z.id === activeTabId)) {
@@ -28,30 +48,12 @@ const Sidebar = ({ timeStepIndex, simulationMode, activeZonesA, activeZonesB, ne
   const activeZone = currentZonesList.find(z => z.id === activeTabId) || currentZonesList[0];
   const sortedAgents = activeZone ? [...activeZone.agents].sort((a, b) => a.type.localeCompare(b.type)) : [];
 
-  let popRiskText = '';
-  let popColorClass = '';
-
-  if (activeZone && activeZone.disasterId && DISASTER_ZONES[activeZone.disasterId]) {
-    const totalPop = DISASTER_ZONES[activeZone.disasterId].affectedDistricts.reduce((sum, d) => sum + d.population, 0);
-    const popInLakhs = (totalPop / 100000).toFixed(2);
-    popRiskText = `⚠️ Population at Risk: ${popInLakhs} Lakh`;
-    
-    if (totalPop > 2000000) {
-      popColorClass = 'text-red-400 bg-red-900/20 border-red-500/30';
-    } else if (totalPop >= 1000000) {
-      popColorClass = 'text-orange-400 bg-orange-900/20 border-orange-500/30';
-    } else {
-      popColorClass = 'text-yellow-400 bg-yellow-900/20 border-yellow-500/30';
-    }
-  }
-
   return (
     <div className="w-80 h-full bg-[#0f1627] border-r border-gray-800 flex flex-col text-white shadow-2xl relative z-20">
       
-      {/* Top Header */}
       <div className="p-4 border-b border-gray-800 bg-[#0a0f1e] flex justify-between items-center shrink-0">
         <h2 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-green-400 to-emerald-600 m-0">
-          🪖 STATUS
+          🪖 OPS STATUS
         </h2>
         <button
           onClick={onReset}
@@ -86,7 +88,6 @@ const Sidebar = ({ timeStepIndex, simulationMode, activeZonesA, activeZonesB, ne
         </div>
       )}
 
-      {/* Tabs Row */}
       {currentZonesList.length > 1 && (
         <div className="flex shrink-0 border-b border-gray-800 bg-[#121a2f]">
           {currentZonesList.map((zone, idx) => (
@@ -105,19 +106,16 @@ const Sidebar = ({ timeStepIndex, simulationMode, activeZonesA, activeZonesB, ne
         </div>
       )}
 
-      {/* Main Scrollable Area */}
-      <div className="flex-1 overflow-y-auto flex flex-col">
+      <div className="flex-1 overflow-y-auto flex flex-col p-4 space-y-6">
         
-        {/* Population at Risk */}
-        {activeZone && (
-          <div className={`mx-4 mt-4 p-2 rounded border text-xs font-semibold flex items-center justify-center text-center shadow-sm shrink-0 ${popColorClass}`}>
-            {popRiskText}
-          </div>
-        )}
+        {/* Analytics Dashboard */}
+        <AnalyticsDashboard activeZones={currentZonesList} />
 
-        {/* Expandable Weather Panel */}
+        {/* Command Log */}
+        <CommandLog logs={logs} simTime={simTime} />
+
         {activeZone && activeZone.weather && (
-          <div className="mx-4 mt-4 bg-[#162032] border border-gray-700/80 rounded-lg shadow-lg overflow-hidden shrink-0">
+          <div className="bg-[#162032] border border-gray-700/80 rounded-lg shadow-lg overflow-hidden shrink-0">
             <button 
               onClick={() => setIsWeatherExpanded(!isWeatherExpanded)}
               className="w-full flex justify-between items-center p-3 hover:bg-[#1a263c] transition-colors"
@@ -135,57 +133,29 @@ const Sidebar = ({ timeStepIndex, simulationMode, activeZonesA, activeZonesB, ne
                 <div className="flex items-center gap-2 mb-2">
                   <span className="text-xl">{activeZone.weather.icon}</span>
                   <p className="text-emerald-400 text-xs font-mono font-semibold m-0">
-                    {activeZone.weather.type} <span className="text-gray-500">|</span> Wind: {activeZone.weather.windSpeed} <span className="text-gray-500">|</span> Vis: {activeZone.weather.visibility}
+                    {activeZone.weather.type}
                   </p>
                 </div>
                 <div className="space-y-1 mt-2">
-                  {Object.entries(activeZone.weather.effects).map(([key, effect]) => {
-                    const agentNames = { army: '🪖 Army', ndrf: '🟠 NDRF', doctors: '👨⚕️ Doctors', police: '👮 Police', supplyChain: '🚚 Supply Chain', civilians: '👥 Civilians' };
-                    return (
-                      <div key={key} className="text-[10px] text-gray-400">
-                        <span className="font-semibold text-gray-300">{agentNames[key]}</span> — {effect.label} 
-                        {effect.speedPenalty > 0 && <span className="text-red-400 font-mono ml-1">(+{effect.speedPenalty} penalty)</span>}
-                      </div>
-                    );
-                  })}
+                   <p className="text-[10px] text-gray-400">Atmosphere is critically affecting deployment speeds.</p>
                 </div>
               </div>
             )}
           </div>
         )}
 
-        {/* Chain Events */}
-        {activeZone && activeZone.triggeredChains && activeZone.triggeredChains.length > 0 && (
-          <div className="mx-4 mt-4 bg-red-900/10 border border-red-500/30 rounded-lg shadow-lg overflow-hidden shrink-0 p-3">
-             <h3 className="font-bold text-red-400 uppercase tracking-widest text-[10px] m-0 mb-3 flex items-center gap-1.5">
-               <span className="text-lg leading-none mt-0.5">⚡</span> Chain Events
-             </h3>
-             <div className="space-y-2">
-               {activeZone.triggeredChains.map((chain, idx) => (
-                 <div key={`${chain.id}-${idx}`} className="bg-[#121a2f] text-[10px] text-red-200 p-2 rounded border border-red-500/20 shadow-inner flex flex-col font-mono">
-                   <span className="font-bold uppercase tracking-wider text-red-400 mb-0.5 opacity-80 text-[9px]">T+{chain.step === 1 ? '6' : chain.step === 2 ? '24' : '72'}hr Trigger</span>
-                   <span className="font-medium text-[11px] leading-tight text-red-300/90">{chain.event}</span>
-                 </div>
-               ))}
-             </div>
-          </div>
-        )}
+        <div className="border-b border-gray-800/80 shrink-0"></div>
 
-        {/* Thin Divider Line */}
-        <div className="mx-4 my-5 border-b border-gray-800/80 shrink-0"></div>
-
-        <div className="px-4 pb-4 flex-1 flex flex-col">
-          {/* Time Step Indicator */}
+        <div className="pb-4 flex-1 flex flex-col">
           <div className="flex items-baseline justify-between mb-4 shrink-0">
             <span className="text-sm font-semibold tracking-widest text-gray-500 uppercase">
               Current Time
             </span>
-            <span className="text-2xl font-mono font-bold text-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.8)]">
+            <span className="text-2xl font-mono font-bold text-emerald-400 drop-shadow-0_0_8px_rgba(52,211,153,0.8)">
               {currentStepLabel}
             </span>
           </div>
 
-          {/* Agent List */}
           <div className="space-y-3 pb-4">
             {sortedAgents.map((agent) => (
               <div
@@ -200,17 +170,29 @@ const Sidebar = ({ timeStepIndex, simulationMode, activeZonesA, activeZonesB, ne
                     <p className="font-semibold text-sm text-gray-200 m-0">
                       {agent.name}
                     </p>
-                    <p className="text-xs text-gray-400 m-0">{agent.type}</p>
+                    <div className="flex items-center gap-2">
+                       <span className="text-[10px] text-gray-400 uppercase">{agent.type}</span>
+                       {agent.fuel !== undefined && agent.type !== 'Civilians' && (
+                         <div className="flex items-center gap-1">
+                            <div className="w-8 h-1 bg-gray-800 rounded-full overflow-hidden">
+                               <div 
+                                 className={`h-full ${agent.fuel > 30 ? 'bg-emerald-500' : 'bg-red-500'}`} 
+                                 style={{ width: `${agent.fuel}%` }}
+                               />
+                            </div>
+                            <span className="text-[8px] text-gray-500 font-mono">{Math.floor(agent.fuel)}%</span>
+                         </div>
+                       )}
+                    </div>
                   </div>
                 </div>
                 <div className="flex flex-col items-end gap-1">
-                  {/* Status Dot & Label */}
                   <div className="flex items-center gap-1.5">
-                    <span className="text-[10px] uppercase font-bold text-gray-500">
+                    <span className="text-[8px] uppercase font-bold text-gray-500">
                       {agent.status}
                     </span>
                     <span
-                      className={`w-2.5 h-2.5 rounded-full shadow-sm ${
+                      className={`w-2 h-2 rounded-full shadow-sm ${
                         agent.status === 'Completed' ||
                         agent.status === 'On Ground'
                           ? 'bg-green-500 shadow-green-500/50'
@@ -220,9 +202,8 @@ const Sidebar = ({ timeStepIndex, simulationMode, activeZonesA, activeZonesB, ne
                       }`}
                     />
                   </div>
-                  {/* Optional Score */}
                   {agent.score !== null && (
-                    <span className="text-xs font-mono font-bold text-emerald-300">
+                    <span className="text-[10px] font-mono font-bold text-emerald-300">
                       {agent.score}/100
                     </span>
                   )}
@@ -233,28 +214,13 @@ const Sidebar = ({ timeStepIndex, simulationMode, activeZonesA, activeZonesB, ne
         </div>
       </div>
 
-      {/* Actions */}
       <div className="p-6 border-t border-gray-800 bg-[#0a0f1e] space-y-4 shrink-0">
         <button
-          onClick={nextStep}
-          disabled={isFinished}
-          className={`w-full py-3 rounded-lg font-bold uppercase tracking-wider transition-all ${
-            isFinished
-              ? 'bg-gray-800 text-gray-500 cursor-not-allowed border border-gray-700'
-              : 'bg-emerald-600 text-white hover:bg-emerald-500 shadow-[0_0_15px_rgba(52,211,153,0.3)] hover:shadow-[0_0_25px_rgba(52,211,153,0.5)] transform hover:-translate-y-0.5'
-          }`}
-        >
-          {isFinished ? 'Simulation Ended' : 'Next Time Step'}
-        </button>
-
-        {isFinished && (
-          <button
             onClick={generateReport}
             className={`w-full py-3 text-white font-bold uppercase tracking-wider rounded-lg transition-all transform hover:-translate-y-0.5 animate-pulse ${simulationMode === 'comparison' ? 'bg-gradient-to-r from-blue-600 to-red-600 hover:from-blue-500 hover:to-red-500 shadow-[0_0_15px_rgba(139,92,246,0.3)]' : 'bg-blue-600 hover:bg-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.3)]'}`}
           >
             {simulationMode === 'comparison' ? 'Compare Results' : 'Generate Report'}
           </button>
-        )}
       </div>
     </div>
   );

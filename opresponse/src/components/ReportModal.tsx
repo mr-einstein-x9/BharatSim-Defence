@@ -1,7 +1,13 @@
 import React, { useMemo } from 'react';
 import { DISASTER_ZONES } from '../data/districtData';
+import { DisasterZone } from '../types';
 
-const ReportModal = ({ activeZones, onClose }) => {
+interface ReportModalProps {
+  activeZones: DisasterZone[];
+  onClose: () => void;
+}
+
+const ReportModal: React.FC<ReportModalProps> = ({ activeZones, onClose }) => {
   const {
     combinedOverall,
     combinedSpeed,
@@ -14,7 +20,7 @@ const ReportModal = ({ activeZones, onClose }) => {
     observations,
     recommendation,
   } = useMemo(() => {
-    const avg = (arr) => arr.length ? Math.round(arr.reduce((sum, item) => sum + (item.score || 0), 0) / arr.length) : 0;
+    const avg = (arr: { score: number | null }[]) => arr.length ? Math.round(arr.reduce((sum, item) => sum + (item.score || 0), 0) / arr.length) : 0;
 
     const zData = activeZones.map(zone => {
       const army = zone.agents.filter(a => a.type === 'Army');
@@ -31,8 +37,8 @@ const ReportModal = ({ activeZones, onClose }) => {
       const civScore = avg(civs);
       const overallScore = avg(zone.agents);
       
-      const popData = DISASTER_ZONES[zone.disasterId]?.affectedDistricts || [];
-      const totalPop = popData.reduce((sum, d) => sum + d.population, 0);
+      const popData = (DISASTER_ZONES as any)[zone.disasterId]?.affectedDistricts || [];
+      const totalPop = popData.reduce((sum: number, d: any) => sum + d.population, 0);
 
       return { ...zone, speedScore, coordScore, covScore, supScore, civScore, overallScore, totalPop, popData };
     });
@@ -52,9 +58,8 @@ const ReportModal = ({ activeZones, onClose }) => {
     const cSup = avg(zData.map(z => ({score: z.supScore})));
     const cCiv = avg(zData.map(z => ({score: z.civScore})));
 
-    let obs = [];
+    let obs: string[] = [];
     
-    // Multi-zone specific observations
     if (zData.length === 3) {
       obs.push('⚠️ Triple disaster scenario critically stretched national response capacity.');
     } else if (zData.length === 2) {
@@ -69,13 +74,11 @@ const ReportModal = ({ activeZones, onClose }) => {
       }
     }
 
-    // Global performance rules
     if (cCiv < 50) obs.push('❌ Civilian safety was critically compromised globally.');
     if (cSup < 50) obs.push('⚠️ Supply chains faced severe multi-regional blockages.');
     if (cOverall >= 75) obs.push('⭐ Multi-theatre operation was largely successful overall.');
     else if (cOverall < 50) obs.push('❌ Systemic multi-regional failures recorded in coordination grid.');
 
-    // Pad observations
     while (obs.length < 4) {
       obs.push('ℹ️ Standard protocol followed for remaining designated sectors.');
     }
@@ -104,13 +107,13 @@ const ReportModal = ({ activeZones, onClose }) => {
     };
   }, [activeZones]);
 
-  const getScoreColor = (sc) => {
+  const getScoreColor = (sc: number) => {
     if (sc >= 70) return 'text-green-400';
     if (sc >= 40) return 'text-yellow-400';
     return 'text-red-500';
   };
 
-  const getCardBg = (sc) => {
+  const getCardBg = (sc: number) => {
     if (sc >= 70) return 'border-emerald-500/30 bg-emerald-900/10 shadow-[0_4px_15px_rgba(16,185,129,0.1)]';
     if (sc >= 40) return 'border-yellow-500/30 bg-yellow-900/10 shadow-[0_4px_15px_rgba(234,179,8,0.1)]';
     return 'border-red-500/30 bg-red-900/10 shadow-[0_4px_15px_rgba(239,68,68,0.1)]';
@@ -119,13 +122,10 @@ const ReportModal = ({ activeZones, onClose }) => {
   return (
     <div className="fixed inset-0 z-[9999] bg-[#050810]/95 backdrop-blur-xl flex justify-center items-center overflow-auto py-12 px-6">
       <div className="w-full max-w-6xl bg-[#0a0f1e] border border-gray-800 rounded-2xl shadow-2xl relative mt-32 md:mt-0 max-h-[90vh] overflow-y-auto">
-        {/* Glow Effects */}
         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-600 via-emerald-400 to-blue-600"></div>
         <div className={`absolute top-0 left-1/2 -ml-32 w-64 h-32 rounded-full blur-[80px] opacity-30 ${combinedOverall >= 70 ? 'bg-emerald-500' : combinedOverall >= 40 ? 'bg-yellow-500' : 'bg-red-500'}`}></div>
 
         <div className="p-10 relative z-10 flex flex-col gap-10">
-          
-          {/* Header Section */}
           <div className="text-center border-b border-gray-800/60 pb-8 relative">
             <div className="absolute top-0 right-0 bg-purple-900/20 border border-purple-500/40 text-purple-400 px-3 py-1 rounded text-[10px] uppercase tracking-widest font-bold flex items-center gap-1 shadow-[0_0_10px_rgba(168,85,247,0.2)]">
               <span className="text-sm">🎲</span> Probabilistic Run
@@ -148,7 +148,6 @@ const ReportModal = ({ activeZones, onClose }) => {
             </div>
           </div>
 
-          {/* Zones Overview */}
           <div className="border-b border-gray-800/60 pb-8 relative">
              <h2 className="text-xl font-bold text-gray-300 uppercase tracking-widest mb-6">Regional Scorecards</h2>
              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -171,71 +170,57 @@ const ReportModal = ({ activeZones, onClose }) => {
              </div>
           </div>
 
-          {/* Cascade Analysis */}
           <div className="border-b border-gray-800/60 pb-8 mt-6">
              <h2 className="text-xl font-bold text-gray-300 uppercase tracking-widest mb-6 flex items-center gap-2">
                <span className="text-xl leading-none">⚡</span> Cascade Analysis
              </h2>
              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-               {zonesData.map((z, i) => (
-                 <div key={z.id} className="bg-[#121a2f] border border-red-500/20 rounded-xl p-4 shadow-lg shrink-0">
-                   <h3 className="text-xs font-bold text-red-400 uppercase tracking-widest mb-3 border-b border-red-500/20 pb-2">Zone {i + 1} Chains</h3>
-                   {z.triggeredChains && z.triggeredChains.length > 0 ? (
-                     <div className="space-y-3">
-                       {z.triggeredChains.map((c, j) => (
-                         <div key={j} className="bg-[#0a0f1e] text-[10px] text-red-200 p-2 rounded border border-red-500/10 flex flex-col font-mono leading-tight">
-                           <span className="font-bold uppercase tracking-wider text-red-400 mb-0.5 opacity-80 text-[9px]">T+{c.step === 1 ? '6' : c.step === 2 ? '24' : '72'}hr Trigger</span>
-                           <span className="mb-1 leading-snug break-words">{c.event}</span>
-                           <span className="text-red-400/80 font-bold">Impact: {c.impacts.map(imp => `${imp.type} -${imp.penalty}`).join(' | ')}</span>
-                         </div>
-                       ))}
-                     </div>
-                   ) : (
-                     <span className="text-[10px] text-gray-500 font-mono italic">No cascade events triggered.</span>
-                   )}
-                 </div>
-               ))}
+                {zonesData.map((z, i) => (
+                  <div key={z.id} className="bg-[#121a2f] border border-red-500/20 rounded-xl p-4 shadow-lg">
+                    <h3 className="text-xs font-bold text-red-400 uppercase tracking-widest mb-3 border-b border-red-500/20 pb-2">Zone {i + 1} Chains</h3>
+                    {z.triggeredChains && z.triggeredChains.length > 0 ? (
+                      <div className="space-y-3">
+                        {z.triggeredChains.map((c, j) => (
+                          <div key={j} className="bg-[#0a0f1e] text-[10px] text-red-200 p-2 rounded border border-red-500/10 flex flex-col font-mono leading-tight">
+                            <span className="font-bold uppercase tracking-wider text-red-400 mb-0.5 opacity-80 text-[9px]">T+{c.step === 1 ? '6' : c.step === 2 ? '24' : '72'}hr Trigger</span>
+                            <span className="mb-1 leading-snug break-words">{c.event}</span>
+                            <span className="text-red-400/80 font-bold">Impact: {c.impacts.map((imp: any) => `${imp.type} -${imp.penalty}`).join(' | ')}</span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <span className="text-[10px] text-gray-500 font-mono italic">No cascade events triggered.</span>
+                    )}
+                  </div>
+                ))}
              </div>
           </div>
 
-          {/* Observations & Feedback block */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-4">
-            {/* Left Column - Breakdown */}
             <div className="lg:col-span-1 space-y-4">
               <h2 className="text-lg font-bold text-gray-300 uppercase tracking-widest mb-4">Total Metric Breakdown</h2>
-              
-              <div className={`p-4 rounded-xl border ${getCardBg(combinedSpeed)} flex justify-between items-center`}>
-                <span className="font-semibold text-gray-300 uppercase text-xs">Speed Score</span>
-                <span className={`font-mono font-bold text-lg ${getScoreColor(combinedSpeed)}`}>{combinedSpeed}</span>
-              </div>
-              <div className={`p-4 rounded-xl border ${getCardBg(combinedCoord)} flex justify-between items-center`}>
-                <span className="font-semibold text-gray-300 uppercase text-xs">Coordination</span>
-                <span className={`font-mono font-bold text-lg ${getScoreColor(combinedCoord)}`}>{combinedCoord}</span>
-              </div>
-              <div className={`p-4 rounded-xl border ${getCardBg(combinedCov)} flex justify-between items-center`}>
-                <span className="font-semibold text-gray-300 uppercase text-xs">Coverage</span>
-                <span className={`font-mono font-bold text-lg ${getScoreColor(combinedCov)}`}>{combinedCov}</span>
-              </div>
-              <div className={`p-4 rounded-xl border ${getCardBg(combinedSup)} flex justify-between items-center`}>
-                <span className="font-semibold text-gray-300 uppercase text-xs">Supply Efficiency</span>
-                <span className={`font-mono font-bold text-lg ${getScoreColor(combinedSup)}`}>{combinedSup}</span>
-              </div>
-              <div className={`p-4 rounded-xl border ${getCardBg(combinedCiv)} flex justify-between items-center`}>
-                <span className="font-semibold text-gray-300 uppercase text-xs">Civilian Safety</span>
-                <span className={`font-mono font-bold text-lg ${getScoreColor(combinedCiv)}`}>{combinedCiv}</span>
-              </div>
+              {[
+                { label: 'Speed Score', val: combinedSpeed },
+                { label: 'Coordination', val: combinedCoord },
+                { label: 'Coverage', val: combinedCov },
+                { label: 'Supply Efficiency', val: combinedSup },
+                { label: 'Civilian Safety', val: combinedCiv }
+              ].map(m => (
+                <div key={m.label} className={`p-4 rounded-xl border ${getCardBg(m.val)} flex justify-between items-center`}>
+                  <span className="font-semibold text-gray-300 uppercase text-xs">{m.label}</span>
+                  <span className={`font-mono font-bold text-lg ${getScoreColor(m.val)}`}>{m.val}</span>
+                </div>
+              ))}
             </div>
 
-            {/* Middle Column - Analytics & Recommendations */}
-            <div className="lg:col-span-2 space-y-8">
+            <div className="lg:col-span-1 space-y-8">
               <div>
                 <h2 className="text-lg font-bold text-gray-300 uppercase tracking-widest mb-4">Global Observations</h2>
                 <div className="bg-[#121a2f] border border-gray-800 rounded-xl p-6">
                   <ul className="space-y-4 text-gray-300 list-none m-0 p-0 text-sm leading-relaxed">
                     {observations.map((obs, i) => (
                       <li key={i} className="flex gap-3">
-                        {obs.startsWith('✅') ? '✅' : obs.startsWith('❌') ? '❌' : obs.startsWith('⚠️') ? '⚠️' : 'ℹ️'}
-                        <span className="font-medium">{obs.replace(/^[✅❌⚠️ℹ️]\s*/, '')}</span>
+                        <span className="font-medium">{obs}</span>
                       </li>
                     ))}
                   </ul>
@@ -253,10 +238,8 @@ const ReportModal = ({ activeZones, onClose }) => {
             </div>
           </div>
 
-          {/* Full Agent Table */}
           <div className="mt-8 border-t border-gray-800/60 pt-10">
             <h2 className="text-lg font-bold text-gray-300 uppercase tracking-widest mb-6">Agent Performance Roster</h2>
-            
             {zonesData.map((z, i) => (
               <div key={z.id} className="mb-8 border border-gray-800 rounded-xl overflow-hidden">
                 <div className="bg-[#1a263c] px-6 py-3 border-b border-gray-800/50 flex justify-between items-center">
@@ -295,7 +278,6 @@ const ReportModal = ({ activeZones, onClose }) => {
                             <span className="cursor-help border-b border-dashed border-emerald-400/50 pb-0.5">{agent.score}</span>
                             {agent.breakDown && (
                               <div className="absolute bottom-full right-4 mb-2 hidden group-hover:block w-40 bg-[#162032] border border-emerald-500/30 text-emerald-100 text-[10px] rounded p-3 shadow-2xl z-50 pointer-events-none text-left leading-relaxed">
-                                <div className="text-[9px] uppercase tracking-widest opacity-60 font-sans mb-1 border-b border-emerald-500/20 pb-1">Score Breakdown</div>
                                 Base: 100<br/>
                                 Weather: {agent.breakDown.weatherPenalty}<br/>
                                 Chain: {agent.breakDown.chainPenalty}<br/>
@@ -322,7 +304,6 @@ const ReportModal = ({ activeZones, onClose }) => {
               Close Report
             </button>
           </div>
-
         </div>
       </div>
     </div>

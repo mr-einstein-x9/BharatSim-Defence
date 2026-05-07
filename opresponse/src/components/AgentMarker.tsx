@@ -1,8 +1,14 @@
 import React from 'react';
 import { Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
+import { Agent } from '../types';
 
-const createCustomIcon = (agent, tint) => {
+interface AgentMarkerProps {
+  agent: Agent;
+  tint?: 'blue' | 'red';
+}
+
+const createCustomIcon = (agent: Agent, tint?: string) => {
   const glowShadow = tint === 'blue' 
     ? 'shadow-[0_0_15px_rgba(59,130,246,0.8)] border-blue-500' 
     : tint === 'red' 
@@ -22,7 +28,7 @@ const createCustomIcon = (agent, tint) => {
   });
 };
 
-const AgentMarker = ({ agent, tint }) => {
+const AgentMarker: React.FC<AgentMarkerProps> = ({ agent, tint }) => {
   const icon = createCustomIcon(agent, tint);
 
   return (

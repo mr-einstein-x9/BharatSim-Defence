@@ -1,4 +1,15 @@
-export const DISASTER_ZONES = {
+export interface District {
+  name: string;
+  population: number;
+}
+
+export interface ZoneData {
+  name: string;
+  center: { lat: number, lng: number };
+  affectedDistricts: District[];
+}
+
+export const DISASTER_ZONES: Record<string, ZoneData> = {
   flood: {
     name: "Assam/Bihar Flood Zone",
     center: { lat: 26.0, lng: 91.0 },

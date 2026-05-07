@@ -1,4 +1,14 @@
-export const WEATHER_CONDITIONS = {
+import { WeatherEffects } from "../types";
+
+export interface WeatherCondition {
+  type: string;
+  icon: string;
+  windSpeed: string;
+  visibility: string;
+  effects: Record<string, WeatherEffects & { label: string }>;
+}
+
+export const WEATHER_CONDITIONS: Record<string, WeatherCondition> = {
   flood: {
     type: "Heavy Rainfall",
     icon: "🌧️",

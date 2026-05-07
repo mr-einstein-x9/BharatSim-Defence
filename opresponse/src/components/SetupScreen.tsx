@@ -3,16 +3,27 @@ import { DISASTERS, AGENT_TYPES } from '../utils/constants';
 import { WEATHER_CONDITIONS } from '../data/weatherData';
 import { calculateAgentSplit } from '../utils/helpers';
 
-const SetupScreen = ({ onLaunch }) => {
+interface Slot {
+  id: string;
+  active: boolean;
+  disasterId: string;
+  severity: 'Low' | 'Medium' | 'High';
+}
+
+interface SetupScreenProps {
+  onLaunch: (payload: { mode: 'single' | 'comparison', configA: Slot[], configB?: Slot[] }) => void;
+}
+
+const SetupScreen: React.FC<SetupScreenProps> = ({ onLaunch }) => {
   const [isComparisonMode, setIsComparisonMode] = useState(false);
 
-  const [slotsA, setSlotsA] = useState([
+  const [slotsA, setSlotsA] = useState<Slot[]>([
     { id: 'zone-1A', active: true, disasterId: 'flood', severity: 'High' },
     { id: 'zone-2A', active: false, disasterId: 'earthquake', severity: 'Medium' },
     { id: 'zone-3A', active: false, disasterId: 'cyclone', severity: 'Low' }
   ]);
   
-  const [slotsB, setSlotsB] = useState([
+  const [slotsB, setSlotsB] = useState<Slot[]>([
     { id: 'zone-1B', active: true, disasterId: 'cyclone', severity: 'High' },
     { id: 'zone-2B', active: false, disasterId: 'flood', severity: 'Medium' },
     { id: 'zone-3B', active: false, disasterId: 'earthquake', severity: 'Low' }
@@ -34,7 +45,7 @@ const SetupScreen = ({ onLaunch }) => {
   const splitCountsA = calculateAgentSplit(activeA);
   const splitCountsB = calculateAgentSplit(activeB);
 
-  const updateSlot = (index, field, value, strategy) => {
+  const updateSlot = (index: number, field: keyof Slot, value: any, strategy: 'A' | 'B') => {
     if (strategy === 'A') {
       const newSlots = [...slotsA];
       newSlots[index] = { ...newSlots[index], [field]: value };
@@ -56,7 +67,7 @@ const SetupScreen = ({ onLaunch }) => {
     }
   };
 
-  const renderPanel = (title, accentColor, slots, strategy, hasDupes, splitCounts, activeSlots) => (
+  const renderPanel = (title: string, accentColor: string, slots: Slot[], strategy: 'A' | 'B', hasDupes: boolean, splitCounts: number[], activeSlots: Slot[]) => (
     <div className={`flex-1 bg-[#0f1627] rounded-xl shadow-2xl p-6 border border-gray-800 ${accentColor === 'blue' ? 'border-t-4 border-t-blue-500' : accentColor === 'red' ? 'border-t-4 border-t-red-500' : ''}`}>
       {title && (
         <h2 className="text-xl font-bold uppercase tracking-widest mb-6 border-b border-gray-800 pb-4 flex items-center justify-between">
@@ -72,7 +83,7 @@ const SetupScreen = ({ onLaunch }) => {
 
       <div className={`grid grid-cols-1 ${isComparisonMode ? '' : 'md:grid-cols-3'} gap-6 mb-8`}>
         {slots.map((slot, i) => {
-           const weather = WEATHER_CONDITIONS[slot.disasterId];
+           const weather = (WEATHER_CONDITIONS as any)[slot.disasterId];
            return (
              <div key={slot.id} className={`p-5 rounded-xl border transition-all ${slot.active ? (accentColor === 'blue' ? 'bg-[#121a2f] border-blue-500/30' : accentColor === 'red' ? 'bg-[#121a2f] border-red-500/30' : 'bg-[#121a2f] border-emerald-500/50') : 'bg-[#0a0f1e] border-gray-800 opacity-60'}`}>
                <div className="flex justify-between items-center mb-4 border-b border-gray-800 pb-3">
@@ -83,7 +94,7 @@ const SetupScreen = ({ onLaunch }) => {
                  </label>
                </div>
 
-               <div className={`space-y-4 ${!slot.active && 'opacity-50 pointer-events-none transition-opacity'}`}>
+               <div className={`space-y-4 ${!slot.active ? 'opacity-50 pointer-events-none transition-opacity' : ''}`}>
                  <div>
                     <label className="block text-xs font-semibold text-gray-400 uppercase tracking-widest mb-2">Disaster Type</label>
                     <select value={slot.disasterId} onChange={(e) => updateSlot(i, 'disasterId', e.target.value, strategy)} className="w-full bg-[#162032] border border-gray-700 text-gray-200 text-sm rounded px-3 py-2 cursor-pointer focus:outline-none focus:border-gray-500">
@@ -95,7 +106,7 @@ const SetupScreen = ({ onLaunch }) => {
                    <label className="block text-xs font-semibold text-gray-400 uppercase tracking-widest mb-2">Severity</label>
                    <div className="flex gap-2">
                      {['Low', 'Medium', 'High'].map(level => (
-                        <button key={level} onClick={() => updateSlot(i, 'severity', level, strategy)} className={`flex-1 py-1.5 rounded text-xs font-bold transition-all border ${slot.severity === level ? (level === 'High' ? 'bg-red-900 border-red-500 text-red-100' : level === 'Medium' ? 'bg-yellow-900 border-yellow-500 text-yellow-100' : 'bg-green-900 border-green-500 text-green-100') : 'bg-[#162032] border-gray-700 text-gray-500 hover:bg-gray-800'}`}>
+                        <button key={level} onClick={() => updateSlot(i, 'severity', level as any, strategy)} className={`flex-1 py-1.5 rounded text-xs font-bold transition-all border ${slot.severity === level ? (level === 'High' ? 'bg-red-900 border-red-500 text-red-100' : level === 'Medium' ? 'bg-yellow-900 border-yellow-500 text-yellow-100' : 'bg-green-900 border-green-500 text-green-100') : 'bg-[#162032] border-gray-700 text-gray-500 hover:bg-gray-800'}`}>
                            {level}
                         </button>
                      ))}
