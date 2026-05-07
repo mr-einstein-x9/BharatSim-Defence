@@ -10,6 +10,18 @@
 
 ---
 
+## 📸 Operational Gallery
+
+| Tactical Map View | Strategy Comparison |
+| :---: | :---: |
+| ![MapView](./screenshot1.png) | ![Comparison](./screenshot2.png) |
+
+| Analytics Dashboard | Command Report |
+| :---: | :---: |
+| ![Analytics](./screenshot6.png) | ![Report](./screenshot7.png) |
+
+---
+
 ## 🚀 Core Features
 
 ### 🕒 Interactive Operational Timeline
