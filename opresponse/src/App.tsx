@@ -44,7 +44,7 @@ function App() {
   }, [isAutoPlaying, simTime, setSimTime, toggleAutoPlay]);
 
   return (
-    <div className="w-screen h-screen overflow-hidden flex flex-col bg-[#0a0f1e] text-white relative">
+    <div className="w-screen h-screen overflow-hidden flex flex-col bg-brand-darker text-white relative">
       {simulationMode === 'comparison' && currentScreen === 'simulation' && (
         <div className="absolute top-4 right-6 z-[2000] flex items-center gap-2 bg-[#ff5500]/10 border border-[#ff5500]/50 text-[#ff7733] px-4 py-1.5 rounded-full shadow-[0_0_15px_rgba(255,85,0,0.3)] backdrop-blur-md">
           <span className="text-xl">⚔️</span>

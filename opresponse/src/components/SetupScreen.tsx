@@ -68,9 +68,9 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ onLaunch }) => {
   };
 
   const renderPanel = (title: string, accentColor: string, slots: Slot[], strategy: 'A' | 'B', hasDupes: boolean, splitCounts: number[], activeSlots: Slot[]) => (
-    <div className={`flex-1 bg-[#0f1627] rounded-xl shadow-2xl p-6 border border-gray-800 ${accentColor === 'blue' ? 'border-t-4 border-t-blue-500' : accentColor === 'red' ? 'border-t-4 border-t-red-500' : ''}`}>
+    <div className={`flex-1 bg-brand-dark rounded-xl shadow-2xl p-6 border border-brand-border ${accentColor === 'blue' ? 'border-t-4 border-t-blue-500' : accentColor === 'red' ? 'border-t-4 border-t-red-500' : ''}`}>
       {title && (
-        <h2 className="text-xl font-bold uppercase tracking-widest mb-6 border-b border-gray-800 pb-4 flex items-center justify-between">
+        <h2 className="text-xl font-bold uppercase tracking-widest mb-6 border-b border-brand-border pb-4 flex items-center justify-between">
           <span className={accentColor === 'blue' ? 'text-blue-400' : accentColor === 'red' ? 'text-red-400' : 'text-gray-300'}>{title}</span>
         </h2>
       )}
@@ -85,8 +85,8 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ onLaunch }) => {
         {slots.map((slot, i) => {
            const weather = (WEATHER_CONDITIONS as any)[slot.disasterId];
            return (
-             <div key={slot.id} className={`p-5 rounded-xl border transition-all ${slot.active ? (accentColor === 'blue' ? 'bg-[#121a2f] border-blue-500/30' : accentColor === 'red' ? 'bg-[#121a2f] border-red-500/30' : 'bg-[#121a2f] border-emerald-500/50') : 'bg-[#0a0f1e] border-gray-800 opacity-60'}`}>
-               <div className="flex justify-between items-center mb-4 border-b border-gray-800 pb-3">
+             <div key={slot.id} className={`p-5 rounded-xl border transition-all ${slot.active ? (accentColor === 'blue' ? 'bg-brand-medium border-blue-500/30' : accentColor === 'red' ? 'bg-brand-medium border-red-500/30' : 'bg-brand-medium border-emerald-500/50') : 'bg-brand-darker border-brand-border opacity-60'}`}>
+               <div className="flex justify-between items-center mb-4 border-b border-brand-border pb-3">
                  <h3 className="font-bold text-gray-300 uppercase tracking-wider">Zone {i + 1}</h3>
                  <label className="flex items-center cursor-pointer">
                    <input type="checkbox" checked={slot.active} onChange={(e) => updateSlot(i, 'active', e.target.checked, strategy)} className={`w-4 h-4 rounded bg-gray-700 border-gray-600 cursor-pointer ${accentColor === 'blue' ? 'text-blue-500 focus:ring-blue-500' : accentColor === 'red' ? 'text-red-500 focus:ring-red-500' : 'text-emerald-500 focus:ring-emerald-500'}`} />
@@ -97,7 +97,7 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ onLaunch }) => {
                <div className={`space-y-4 ${!slot.active ? 'opacity-50 pointer-events-none transition-opacity' : ''}`}>
                  <div>
                     <label className="block text-xs font-semibold text-gray-400 uppercase tracking-widest mb-2">Disaster Type</label>
-                    <select value={slot.disasterId} onChange={(e) => updateSlot(i, 'disasterId', e.target.value, strategy)} className="w-full bg-[#162032] border border-gray-700 text-gray-200 text-sm rounded px-3 py-2 cursor-pointer focus:outline-none focus:border-gray-500">
+                     <select value={slot.disasterId} onChange={(e) => updateSlot(i, 'disasterId', e.target.value, strategy)} className="w-full bg-brand-light border border-brand-border text-gray-200 text-sm rounded px-3 py-2 cursor-pointer focus:outline-none focus:border-brand-lighter">
                       {DISASTERS.map(d => <option key={d.id} value={d.id}>{d.name} — {d.region}</option>)}
                     </select>
                  </div>
@@ -106,7 +106,7 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ onLaunch }) => {
                    <label className="block text-xs font-semibold text-gray-400 uppercase tracking-widest mb-2">Severity</label>
                    <div className="flex gap-2">
                      {['Low', 'Medium', 'High'].map(level => (
-                        <button key={level} onClick={() => updateSlot(i, 'severity', level as any, strategy)} className={`flex-1 py-1.5 rounded text-xs font-bold transition-all border ${slot.severity === level ? (level === 'High' ? 'bg-red-900 border-red-500 text-red-100' : level === 'Medium' ? 'bg-yellow-900 border-yellow-500 text-yellow-100' : 'bg-green-900 border-green-500 text-green-100') : 'bg-[#162032] border-gray-700 text-gray-500 hover:bg-gray-800'}`}>
+                         <button key={level} onClick={() => updateSlot(i, 'severity', level as any, strategy)} className={`flex-1 py-1.5 rounded text-xs font-bold transition-all border ${slot.severity === level ? (level === 'High' ? 'bg-red-900 border-red-500 text-red-100' : level === 'Medium' ? 'bg-yellow-900 border-yellow-500 text-yellow-100' : 'bg-green-900 border-green-500 text-green-100') : 'bg-brand-light border-brand-border text-gray-500 hover:bg-brand-medium'}`}>
                            {level}
                         </button>
                      ))}
@@ -114,7 +114,7 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ onLaunch }) => {
                  </div>
 
                  {weather && (
-                   <div className="mt-2 p-3 bg-[#0a0f1e] border border-gray-800 rounded text-xs text-gray-400 shadow-inner">
+                    <div className="mt-2 p-3 bg-brand-darker border border-brand-border rounded text-xs text-gray-400 shadow-inner">
                      <div className="flex items-center gap-2 mb-1">
                        <span className="text-lg">{weather.icon}</span>
                        <span className="font-bold text-gray-300">{weather.type}</span>
@@ -131,12 +131,12 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ onLaunch }) => {
       </div>
       
       {activeSlots.length > 0 && !hasDupes && (
-        <div className={`mb-4 p-4 bg-[#121a2f] border rounded-xl ${accentColor === 'blue' ? 'border-blue-500/20' : accentColor === 'red' ? 'border-red-500/20' : 'border-emerald-500/20'}`}>
+        <div className={`mb-4 p-4 bg-brand-medium border rounded-xl ${accentColor === 'blue' ? 'border-blue-500/20' : accentColor === 'red' ? 'border-red-500/20' : 'border-emerald-500/20'}`}>
           <h3 className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-3">Agent Allocation Preview</h3>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
             {AGENT_TYPES.map(agentType => (
-              <div key={agentType.type} className="p-2 bg-[#0a0f1e] rounded border border-gray-800 text-[10px]">
-                <div className="font-bold text-gray-300 border-b border-gray-800 pb-1 mb-1">{agentType.emoji} {agentType.type}</div>
+              <div key={agentType.type} className="p-2 bg-brand-darker rounded border border-brand-border text-[10px]">
+                <div className="font-bold text-gray-300 border-b border-brand-border pb-1 mb-1">{agentType.emoji} {agentType.type}</div>
                 <div className="space-y-0.5">
                   {activeSlots.map((slot, idx) => (
                     <div key={slot.id} className="text-gray-500 flex justify-between">
@@ -154,7 +154,7 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ onLaunch }) => {
   );
 
   return (
-    <div className="flex flex-col items-center min-h-screen bg-[#0a0f1e] text-white p-6 overflow-y-auto w-full">
+    <div className="flex flex-col items-center min-h-screen bg-brand-darker text-white p-6 overflow-y-auto w-full">
       
       <div className="text-center mb-6 mt-4">
         <h1 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-600 mb-2">
@@ -166,16 +166,16 @@ const SetupScreen: React.FC<SetupScreenProps> = ({ onLaunch }) => {
       </div>
 
       <div className="flex justify-center mb-8">
-        <div className="bg-[#121a2f] p-1 rounded-lg border border-gray-800 inline-flex">
+        <div className="bg-brand-medium p-1 rounded-lg border border-brand-border inline-flex">
           <button 
             onClick={() => setIsComparisonMode(false)}
-            className={`px-8 py-2.5 rounded text-sm font-bold uppercase tracking-widest transition-all ${!isComparisonMode ? 'bg-[#1e293b] text-white shadow-md' : 'text-gray-500 hover:text-gray-300'}`}
+            className={`px-8 py-2.5 rounded text-sm font-bold uppercase tracking-widest transition-all ${!isComparisonMode ? 'bg-brand-lighter text-white shadow-md' : 'text-gray-500 hover:text-gray-300'}`}
           >
             Single Operation
           </button>
           <button 
             onClick={() => setIsComparisonMode(true)}
-            className={`px-8 py-2.5 rounded text-sm font-bold uppercase tracking-widest transition-all ${isComparisonMode ? 'bg-[#1e293b] text-white shadow-md' : 'text-gray-500 hover:text-gray-300'}`}
+            className={`px-8 py-2.5 rounded text-sm font-bold uppercase tracking-widest transition-all ${isComparisonMode ? 'bg-brand-lighter text-white shadow-md' : 'text-gray-500 hover:text-gray-300'}`}
           >
             Comparison Mode
           </button>

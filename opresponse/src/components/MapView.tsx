@@ -34,14 +34,14 @@ const MapPanel: React.FC<MapPanelProps> = ({ zones, title, tint, simTime }) => {
     }));
   }, [zones, simTime]);
 
-  if (!zones || zones.length === 0) return <div className="flex-1 w-full bg-[#0a0f1e]"></div>;
+  if (!zones || zones.length === 0) return <div className="flex-1 w-full bg-brand-darker"></div>;
 
   const zoneColors = tint === 'blue' ? ['#3b82f6', '#60a5fa', '#93c5fd'] : tint === 'red' ? ['#ef4444', '#f87171', '#fca5a5'] : ['#ef4444', '#f97316', '#eab308'];
 
   return (
-    <div className="flex-1 h-full relative z-10 bg-[#0a0f1e] overflow-hidden">
+    <div className="flex-1 h-full relative z-10 bg-brand-darker overflow-hidden">
       {title && (
-        <div className={`absolute top-6 left-6 z-[1000] bg-[#0a0f1e]/80 backdrop-blur-md px-6 py-3 rounded-lg border shadow-lg flex items-center gap-4 ${tint === 'blue' ? 'border-blue-500 shadow-blue-500/30' : 'border-red-500 shadow-red-500/30'}`}>
+        <div className={`absolute top-6 left-6 z-[1000] bg-brand-darker/80 backdrop-blur-md px-6 py-3 rounded-lg border shadow-lg flex items-center gap-4 ${tint === 'blue' ? 'border-blue-500 shadow-blue-500/30' : 'border-red-500 shadow-red-500/30'}`}>
           <span className={`w-3 h-3 rounded-full animate-pulse ${tint === 'blue' ? 'bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.8)]' : 'bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.8)]'}`}></span>
           <h2 className="text-xl font-bold font-mono text-gray-200 tracking-widest uppercase m-0">
             {title}

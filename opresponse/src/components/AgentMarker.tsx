@@ -13,7 +13,7 @@ const createCustomIcon = (agent: Agent, tint?: string) => {
     ? 'shadow-[0_0_15px_rgba(59,130,246,0.8)] border-blue-500' 
     : tint === 'red' 
     ? 'shadow-[0_0_15px_rgba(239,68,68,0.8)] border-red-500'
-    : 'shadow-[0_0_15px_rgba(0,0,0,0.8)] border-[#0a0f1e]';
+    : 'shadow-[0_0_15px_rgba(0,0,0,0.8)] border-brand-darker';
 
   return L.divIcon({
     className: 'bg-transparent border-none',
@@ -34,8 +34,8 @@ const AgentMarker: React.FC<AgentMarkerProps> = ({ agent, tint }) => {
   return (
     <Marker position={[agent.lat, agent.lng]} icon={icon}>
       <Popup className="agent-popup border-none">
-        <div className="bg-[#0f1627] text-white p-4 rounded-xl shadow-2xl border border-gray-700 min-w-[200px]">
-          <div className="flex items-center gap-3 border-b border-gray-800 pb-3 mb-3">
+        <div className="bg-brand-dark text-white p-4 rounded-xl shadow-2xl border border-brand-border min-w-[200px]">
+          <div className="flex items-center gap-3 border-b border-brand-border pb-3 mb-3">
             <span className="text-3xl bg-gray-800 p-2 rounded-lg">{agent.emoji}</span>
             <div>
               <h3 className="text-lg font-bold text-gray-100 m-0 leading-tight">{agent.name}</h3>
@@ -43,7 +43,7 @@ const AgentMarker: React.FC<AgentMarkerProps> = ({ agent, tint }) => {
             </div>
           </div>
           <div className="flex flex-col gap-2">
-            <div className="flex justify-between items-center bg-[#162032] p-2 rounded">
+            <div className="flex justify-between items-center bg-brand-light p-2 rounded">
               <span className="text-xs uppercase font-bold text-gray-500">Status</span>
               <span className={`text-xs font-bold uppercase ${
                 agent.status === 'Completed' || agent.status === 'On Ground' ? 'text-green-400' :
@@ -53,12 +53,12 @@ const AgentMarker: React.FC<AgentMarkerProps> = ({ agent, tint }) => {
               </span>
             </div>
             {agent.score !== null && (
-              <div className="flex justify-between items-center bg-[#162032] p-2 rounded">
+              <div className="flex justify-between items-center bg-brand-light p-2 rounded">
                 <span className="text-xs uppercase font-bold text-gray-500">Score</span>
                 <span className="text-sm font-mono font-bold text-emerald-300">{agent.score}/100</span>
               </div>
             )}
-            <div className="flex justify-between items-center bg-[#162032] p-2 rounded">
+            <div className="flex justify-between items-center bg-brand-light p-2 rounded">
               <span className="text-xs uppercase font-bold text-gray-500">Location</span>
               <span className="text-xs font-mono text-gray-300">
                 {agent.lat.toFixed(2)}, {agent.lng.toFixed(2)}

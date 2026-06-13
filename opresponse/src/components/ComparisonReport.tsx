@@ -104,10 +104,10 @@ const ComparisonReport: React.FC<ComparisonReportProps> = ({ activeZonesA, activ
         <div className="flex justify-between items-end mb-1">
           <span className="text-xs font-bold text-gray-300 uppercase tracking-widest">{label}</span>
         </div>
-        <div className="bg-[#0f1627] rounded-md p-3 border border-gray-800 space-y-3">
+        <div className="bg-brand-dark rounded-md p-3 border border-brand-border space-y-3">
           <div className="flex items-center">
             <span className="w-6 font-bold text-xs text-blue-400">A</span>
-            <div className="flex-1 bg-[#1a2035] h-6 rounded-full overflow-hidden relative border border-gray-700">
+            <div className="flex-1 bg-brand-light h-6 rounded-full overflow-hidden relative border border-brand-border">
               <div className="absolute top-0 left-0 h-full bg-[#3b82f6] transition-all duration-800 ease-out flex items-center justify-end pr-2 shadow-[0_0_10px_rgba(59,130,246,0.6)]" style={{ width: wA }}></div>
             </div>
             <span className="w-12 text-right font-mono font-bold text-sm text-blue-300 flex justify-end gap-1">
@@ -116,7 +116,7 @@ const ComparisonReport: React.FC<ComparisonReportProps> = ({ activeZonesA, activ
           </div>
           <div className="flex items-center">
             <span className="w-6 font-bold text-xs text-red-400">B</span>
-            <div className="flex-1 bg-[#1a2035] h-6 rounded-full overflow-hidden relative border border-gray-700">
+            <div className="flex-1 bg-brand-light h-6 rounded-full overflow-hidden relative border border-brand-border">
               <div className="absolute top-0 left-0 h-full bg-[#ef4444] transition-all duration-800 ease-out flex items-center justify-end pr-2 shadow-[0_0_10px_rgba(239,68,68,0.6)]" style={{ width: wB }}></div>
             </div>
             <span className="w-12 text-right font-mono font-bold text-sm text-red-300 flex justify-end gap-1">
@@ -141,13 +141,13 @@ const ComparisonReport: React.FC<ComparisonReportProps> = ({ activeZonesA, activ
   };
 
   return (
-    <div className="fixed inset-0 z-[9999] bg-[#050810]/95 backdrop-blur-xl flex justify-center items-center overflow-auto py-12 px-6">
-      <div className="w-full max-w-5xl bg-[#0a0f1e] border border-gray-800 rounded-2xl shadow-2xl relative max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-[9999] bg-brand-darkest/95 backdrop-blur-xl flex justify-center items-center overflow-auto py-12 px-6">
+      <div className="w-full max-w-5xl bg-brand-darker border border-brand-border rounded-2xl shadow-2xl relative max-h-[90vh] overflow-y-auto">
         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-600 via-gray-500 to-red-600"></div>
         <div className={`absolute top-0 left-1/2 -ml-32 w-64 h-32 rounded-full blur-[80px] opacity-20 ${overallWinner === 'A' ? 'bg-blue-500' : overallWinner === 'B' ? 'bg-red-500' : 'bg-gray-500'}`}></div>
 
         <div className="p-10 relative z-10 flex flex-col gap-10">
-          <div className="text-center border-b border-gray-800/60 pb-8 relative">
+          <div className="text-center border-b border-brand-border/60 pb-8 relative">
             <div className="absolute top-0 right-0 bg-purple-900/20 border border-purple-500/40 text-purple-400 px-3 py-1 rounded text-[10px] uppercase tracking-widest font-bold flex items-center gap-1 shadow-[0_0_10px_rgba(168,85,247,0.2)]">
               <span className="text-sm">🎲</span> Probabilistic Run
             </div>
@@ -169,7 +169,7 @@ const ComparisonReport: React.FC<ComparisonReportProps> = ({ activeZonesA, activ
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
             <div>
-               <h3 className="text-lg font-bold text-gray-300 uppercase tracking-widest mb-6 border-b border-gray-800 pb-2">Metric Comparison</h3>
+               <h3 className="text-lg font-bold text-gray-300 uppercase tracking-widest mb-6 border-b border-brand-border pb-2">Metric Comparison</h3>
                <BarPair label="Speed Score" scoreA={metricsA.speed} scoreB={metricsB.speed} />
                <BarPair label="Coordination Score" scoreA={metricsA.coord} scoreB={metricsB.coord} />
                <BarPair label="Coverage Score" scoreA={metricsA.cov} scoreB={metricsB.cov} />
@@ -179,26 +179,26 @@ const ComparisonReport: React.FC<ComparisonReportProps> = ({ activeZonesA, activ
 
             <div className="flex flex-col gap-10">
               <div>
-                <h3 className="text-lg font-bold text-gray-300 uppercase tracking-widest mb-6 border-b border-gray-800 pb-2">Category Winners</h3>
-                <div className="overflow-hidden rounded-xl border border-gray-800">
-                  <table className="w-full text-left text-sm text-gray-400">
-                    <thead className="bg-[#121a2f] text-gray-300 uppercase font-mono text-xs border-b border-gray-800">
-                      <tr>
-                        <th className="px-6 py-3">Metric</th>
-                        <th className="px-6 py-3 text-center text-blue-400">Strategy A</th>
-                        <th className="px-6 py-3 text-center text-red-400">Strategy B</th>
-                        <th className="px-6 py-3 text-right">Winner</th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-[#0a0f1e] divide-y divide-gray-800/50 font-mono">
-                      {[
-                        {name:'Speed', a:metricsA.speed, b:metricsB.speed},
-                        {name:'Coordination', a:metricsA.coord, b:metricsB.coord},
-                        {name:'Coverage', a:metricsA.cov, b:metricsB.cov},
-                        {name:'Supply Efficiency', a:metricsA.sup, b:metricsB.sup},
-                        {name:'Civilian Safety', a:metricsA.civ, b:metricsB.civ}
-                      ].map((row, i) => (
-                        <tr key={i} className="hover:bg-[#121a2f]">
+                 <h3 className="text-lg font-bold text-gray-300 uppercase tracking-widest mb-6 border-b border-brand-border pb-2">Category Winners</h3>
+                 <div className="overflow-hidden rounded-xl border border-brand-border">
+                   <table className="w-full text-left text-sm text-gray-400">
+                     <thead className="bg-brand-medium text-gray-300 uppercase font-mono text-xs border-b border-brand-border">
+                       <tr>
+                         <th className="px-6 py-3">Metric</th>
+                         <th className="px-6 py-3 text-center text-blue-400">Strategy A</th>
+                         <th className="px-6 py-3 text-center text-red-400">Strategy B</th>
+                         <th className="px-6 py-3 text-right">Winner</th>
+                       </tr>
+                     </thead>
+                     <tbody className="bg-brand-darker divide-y divide-brand-border/50 font-mono">
+                       {[
+                         {name:'Speed', a:metricsA.speed, b:metricsB.speed},
+                         {name:'Coordination', a:metricsA.coord, b:metricsB.coord},
+                         {name:'Coverage', a:metricsA.cov, b:metricsB.cov},
+                         {name:'Supply Efficiency', a:metricsA.sup, b:metricsB.sup},
+                         {name:'Civilian Safety', a:metricsA.civ, b:metricsB.civ}
+                       ].map((row, i) => (
+                         <tr key={i} className="hover:bg-brand-medium">
                           <td className="px-6 py-3 text-gray-300 font-sans font-semibold text-xs tracking-wider uppercase">{row.name}</td>
                           <td className="px-6 py-3 text-center text-blue-300">{row.a}</td>
                           <td className="px-6 py-3 text-center text-red-300">{row.b}</td>
@@ -210,9 +210,9 @@ const ComparisonReport: React.FC<ComparisonReportProps> = ({ activeZonesA, activ
                 </div>
               </div>
 
-              <div>
-                <h3 className="text-lg font-bold text-gray-300 uppercase tracking-widest mb-6 border-b border-gray-800 pb-2">Key Insights</h3>
-                <div className="bg-[#121a2f] border border-gray-800 rounded-xl p-6">
+               <div>
+                 <h3 className="text-lg font-bold text-gray-300 uppercase tracking-widest mb-6 border-b border-brand-border pb-2">Key Insights</h3>
+                 <div className="bg-brand-medium border border-brand-border rounded-xl p-6">
                   <ul className="space-y-4 text-gray-300 list-none m-0 p-0 text-sm leading-relaxed">
                     {insights.map((obs, i) => (
                       <li key={i} className="flex gap-3 items-start">
@@ -226,11 +226,11 @@ const ComparisonReport: React.FC<ComparisonReportProps> = ({ activeZonesA, activ
             </div>
           </div>
 
-          <div className="flex justify-center items-center gap-4 mt-6 border-t border-gray-800/60 pt-8">
-            <button 
-              onClick={handleExport}
-              className="px-8 py-3 bg-[#121a2f] hover:bg-[#1a263c] text-emerald-400 font-bold rounded-lg text-sm uppercase tracking-widest border border-emerald-500/30 transition-all flex items-center gap-2"
-            >
+           <div className="flex justify-center items-center gap-4 mt-6 border-t border-brand-border/60 pt-8">
+             <button 
+               onClick={handleExport}
+               className="px-8 py-3 bg-brand-medium hover:bg-brand-lighter text-emerald-400 font-bold rounded-lg text-sm uppercase tracking-widest border border-emerald-500/30 transition-all flex items-center gap-2"
+             >
               <span>📋</span> Export Comparison
             </button>
             <button 

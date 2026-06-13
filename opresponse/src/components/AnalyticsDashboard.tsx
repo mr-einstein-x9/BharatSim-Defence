@@ -48,7 +48,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ activeZones }) 
   }, [activeZones]);
 
   return (
-    <div className="bg-[#0f1627] border border-gray-800 rounded-xl p-4 shadow-xl">
+    <div className="bg-brand-dark border border-brand-border rounded-xl p-4 shadow-xl">
       <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4 flex items-center gap-2">
         📊 Performance Analytics
       </h3>
@@ -66,7 +66,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ activeZones }) 
                 <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
+            <CartesianGrid strokeDasharray="3 3" stroke="#12244a" vertical={false} />
             <XAxis 
               dataKey="time" 
               stroke="#475569" 
@@ -82,7 +82,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ activeZones }) 
               domain={[0, 100]}
             />
             <Tooltip 
-              contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '8px', fontSize: '10px' }}
+              contentStyle={{ backgroundColor: '#152e5f', border: '1px solid #12244a', borderRadius: '8px', fontSize: '10px' }}
               itemStyle={{ color: '#f1f5f9' }}
             />
             <Area 

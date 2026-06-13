@@ -10,8 +10,8 @@ const CommandLog: React.FC<CommandLogProps> = ({ logs, simTime }) => {
   const visibleLogs = logs.filter(log => log.time <= simTime);
 
   return (
-    <div className="bg-[#0a0f1e] border border-gray-800 rounded-xl flex flex-col h-64 shadow-inner overflow-hidden">
-      <div className="px-3 py-2 border-b border-gray-800 bg-[#121a2f] flex justify-between items-center">
+    <div className="bg-brand-darker border border-brand-border rounded-xl flex flex-col h-64 shadow-inner overflow-hidden">
+      <div className="px-3 py-2 border-b border-brand-border bg-brand-medium flex justify-between items-center">
         <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] m-0">
           🛰️ Real-time Command Log
         </h3>

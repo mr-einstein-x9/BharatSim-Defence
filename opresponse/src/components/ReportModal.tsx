@@ -120,8 +120,8 @@ const ReportModal: React.FC<ReportModalProps> = ({ activeZones, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-[9999] bg-[#050810]/95 backdrop-blur-xl flex justify-center items-center overflow-auto py-12 px-6">
-      <div className="w-full max-w-6xl bg-[#0a0f1e] border border-gray-800 rounded-2xl shadow-2xl relative mt-32 md:mt-0 max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-[9999] bg-brand-darkest/95 backdrop-blur-xl flex justify-center items-center overflow-auto py-12 px-6">
+      <div className="w-full max-w-6xl bg-brand-darker border border-brand-border rounded-2xl shadow-2xl relative mt-32 md:mt-0 max-h-[90vh] overflow-y-auto">
         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-600 via-emerald-400 to-blue-600"></div>
         <div className={`absolute top-0 left-1/2 -ml-32 w-64 h-32 rounded-full blur-[80px] opacity-30 ${combinedOverall >= 70 ? 'bg-emerald-500' : combinedOverall >= 40 ? 'bg-yellow-500' : 'bg-red-500'}`}></div>
 
@@ -176,12 +176,12 @@ const ReportModal: React.FC<ReportModalProps> = ({ activeZones, onClose }) => {
              </h2>
              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {zonesData.map((z, i) => (
-                  <div key={z.id} className="bg-[#121a2f] border border-red-500/20 rounded-xl p-4 shadow-lg">
+                  <div key={z.id} className="bg-brand-medium border border-red-500/20 rounded-xl p-4 shadow-lg">
                     <h3 className="text-xs font-bold text-red-400 uppercase tracking-widest mb-3 border-b border-red-500/20 pb-2">Zone {i + 1} Chains</h3>
                     {z.triggeredChains && z.triggeredChains.length > 0 ? (
                       <div className="space-y-3">
                         {z.triggeredChains.map((c, j) => (
-                          <div key={j} className="bg-[#0a0f1e] text-[10px] text-red-200 p-2 rounded border border-red-500/10 flex flex-col font-mono leading-tight">
+                          <div key={j} className="bg-brand-darker text-[10px] text-red-200 p-2 rounded border border-red-500/10 flex flex-col font-mono leading-tight">
                             <span className="font-bold uppercase tracking-wider text-red-400 mb-0.5 opacity-80 text-[9px]">T+{c.step === 1 ? '6' : c.step === 2 ? '24' : '72'}hr Trigger</span>
                             <span className="mb-1 leading-snug break-words">{c.event}</span>
                             <span className="text-red-400/80 font-bold">Impact: {c.impacts.map((imp: any) => `${imp.type} -${imp.penalty}`).join(' | ')}</span>
@@ -216,7 +216,7 @@ const ReportModal: React.FC<ReportModalProps> = ({ activeZones, onClose }) => {
             <div className="lg:col-span-1 space-y-8">
               <div>
                 <h2 className="text-lg font-bold text-gray-300 uppercase tracking-widest mb-4">Global Observations</h2>
-                <div className="bg-[#121a2f] border border-gray-800 rounded-xl p-6">
+                <div className="bg-brand-medium border border-brand-border rounded-xl p-6">
                   <ul className="space-y-4 text-gray-300 list-none m-0 p-0 text-sm leading-relaxed">
                     {observations.map((obs, i) => (
                       <li key={i} className="flex gap-3">
@@ -241,8 +241,8 @@ const ReportModal: React.FC<ReportModalProps> = ({ activeZones, onClose }) => {
           <div className="mt-8 border-t border-gray-800/60 pt-10">
             <h2 className="text-lg font-bold text-gray-300 uppercase tracking-widest mb-6">Agent Performance Roster</h2>
             {zonesData.map((z, i) => (
-              <div key={z.id} className="mb-8 border border-gray-800 rounded-xl overflow-hidden">
-                <div className="bg-[#1a263c] px-6 py-3 border-b border-gray-800/50 flex justify-between items-center">
+              <div key={z.id} className="mb-8 border border-brand-border rounded-xl overflow-hidden">
+                <div className="bg-brand-lighter px-6 py-3 border-b border-brand-border/50 flex justify-between items-center">
                    <h3 className="font-bold text-gray-300 uppercase tracking-wider text-sm m-0 flex gap-2">
                      <span className="text-gray-500">Zone {i + 1}</span> 
                      <span className="text-gray-400">|</span> 
@@ -254,7 +254,7 @@ const ReportModal: React.FC<ReportModalProps> = ({ activeZones, onClose }) => {
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-sm text-gray-400">
-                    <thead className="bg-[#121a2f] text-gray-300 uppercase font-mono text-[10px] border-b border-gray-800">
+                    <thead className="bg-brand-medium text-gray-300 uppercase font-mono text-[10px] border-b border-brand-border">
                       <tr>
                         <th className="px-6 py-3 w-16">Unit</th>
                         <th className="px-6 py-3">Name</th>
@@ -263,9 +263,9 @@ const ReportModal: React.FC<ReportModalProps> = ({ activeZones, onClose }) => {
                         <th className="px-6 py-3 text-right">Score</th>
                       </tr>
                     </thead>
-                    <tbody className="bg-[#0a0f1e] divide-y divide-gray-800/50">
+                    <tbody className="bg-brand-darker divide-y divide-brand-border/50">
                       {z.agents.map((agent) => (
-                        <tr key={agent.id} className="hover:bg-[#121a2f] transition-colors">
+                        <tr key={agent.id} className="hover:bg-brand-medium transition-colors">
                           <td className="px-6 py-3 text-xl">{agent.emoji}</td>
                           <td className="px-6 py-3 font-semibold text-gray-200">{agent.name}</td>
                           <td className="px-6 py-3 uppercase tracking-wider text-[10px]">{agent.type}</td>
@@ -277,7 +277,7 @@ const ReportModal: React.FC<ReportModalProps> = ({ activeZones, onClose }) => {
                           <td className="px-6 py-3 font-bold font-mono text-sm text-right align-middle text-emerald-400 group relative">
                             <span className="cursor-help border-b border-dashed border-emerald-400/50 pb-0.5">{agent.score}</span>
                             {agent.breakDown && (
-                              <div className="absolute bottom-full right-4 mb-2 hidden group-hover:block w-40 bg-[#162032] border border-emerald-500/30 text-emerald-100 text-[10px] rounded p-3 shadow-2xl z-50 pointer-events-none text-left leading-relaxed">
+                              <div className="absolute bottom-full right-4 mb-2 hidden group-hover:block w-40 bg-brand-light border border-emerald-500/30 text-emerald-100 text-[10px] rounded p-3 shadow-2xl z-50 pointer-events-none text-left leading-relaxed">
                                 Base: 100<br/>
                                 Weather: {agent.breakDown.weatherPenalty}<br/>
                                 Chain: {agent.breakDown.chainPenalty}<br/>

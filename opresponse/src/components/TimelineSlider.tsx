@@ -18,7 +18,7 @@ const TimelineSlider: React.FC<TimelineSliderProps> = ({
 }) => {
   return (
     <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-[3000] w-full max-w-2xl px-6">
-      <div className="bg-[#0f1627]/90 backdrop-blur-md border border-gray-800 rounded-2xl p-4 shadow-2xl flex items-center gap-6">
+      <div className="bg-brand-dark/95 backdrop-blur-md border border-brand-border rounded-2xl p-4 shadow-2xl flex items-center gap-6">
         
         {/* Play/Pause Button */}
         <button 
@@ -48,7 +48,7 @@ const TimelineSlider: React.FC<TimelineSliderProps> = ({
         </div>
 
         {/* Time Display */}
-        <div className="bg-[#162032] px-4 py-2 rounded-lg border border-gray-700 min-w-[80px] text-center">
+        <div className="bg-brand-light px-4 py-2 rounded-lg border border-brand-border min-w-[80px] text-center">
           <span className="text-xl font-mono font-black text-emerald-400">
             T+{Math.floor(simTime)}h
           </span>
